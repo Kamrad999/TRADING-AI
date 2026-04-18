@@ -85,12 +85,12 @@ class MultiFactorModel:
         """Initialize multi-factor model."""
         self.logger = get_logger("multi_factor_model")
         
-        # Factor definitions
-        self._initialize_factors()
-        
-        # Factor weights
+        # Factor weights (must be initialized before _initialize_factors)
         self.factor_weights: Dict[str, float] = {}
         self.category_weights: Dict[FactorCategory, float] = {}
+        
+        # Factor definitions
+        self._initialize_factors()
         
         # Factor history
         self.factor_history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))

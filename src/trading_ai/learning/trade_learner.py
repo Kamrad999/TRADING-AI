@@ -343,7 +343,7 @@ class TradeLearner:
         failure_patterns = insights["failure_patterns"]
         
         # Market regime recommendations
- if "market_regime" in successful_patterns and "market_regime" in failure_patterns:
+        if "market_regime" in successful_patterns and "market_regime" in failure_patterns:
             success_regime = max(successful_patterns["market_regime"].items(), key=lambda x: x[1]["avg_reward"])
             failure_regime = min(failure_patterns["market_regime"].items(), key=lambda x: x[1]["avg_reward"])
             

@@ -25,7 +25,7 @@ from ..infrastructure.config import config
 from ..infrastructure.logging import get_logger
 from ..infrastructure.source_registry import SourceRegistry
 from ..agents.news_collector import NewsCollector
-from ..agents.signal_generator import SignalGenerator
+from ..agents.institutional_signal_generator import InstitutionalSignalGenerator
 from ..validation.duplicate_filter import DuplicateFilter
 from ..validation.news_validator import NewsValidator
 from ..risk.risk_manager import RiskManager
@@ -87,7 +87,7 @@ class PipelineOrchestrator:
         self.news_collector = NewsCollector()
         self.duplicate_filter = DuplicateFilter()
         self.news_validator = NewsValidator()
-        self.signal_generator = SignalGenerator()
+        self.signal_generator = InstitutionalSignalGenerator()
         self.risk_manager = RiskManager()
         self.performance_tracker = PerformanceTracker()
         

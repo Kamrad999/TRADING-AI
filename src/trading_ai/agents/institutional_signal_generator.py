@@ -404,147 +404,27 @@ class InstitutionalSignalGenerator:
             f"event severity: {event.severity:.2f}"
         ]
         reason = " | ".join(reason_parts)
-    
-    # Extract stock entities
-    for name, symbol in self.stock_mappings.items():
-        if name in text and symbol not in seen_entities:
-            mentions = len(re.findall(r'\b' + re.escape(name) + r'\b', text, re.IGNORECASE))
-            if mentions > 0:
-                entities.append(ExtractedEntity(
-                    name=name.title(),
-                    symbol=symbol,
-                    entity_type="stock",
-                    confidence=0.85,
-                    mentions=mentions
-                ))
-                seen_entities.add(symbol)
-    
-    # Sort by mentions and confidence
-    entities.sort(key=lambda e: (e.mentions, e.confidence), reverse=True)
-    
-    return entities[:3]  # Top 3 entities
-
-def _classify_event(self, text: str) -> ClassifiedEvent:
-    """Classify market event from text."""
-    event_scores = {}
-    
-    for event_type, patterns in self.event_patterns.items():
-        score = 0
-        for pattern in patterns:
-            matches = len(re.findall(pattern, text, re.IGNORECASE))
-            score += matches
-        event_scores[event_type] = score
-    
-    # Get best event type
-    if not event_scores or max(event_scores.values()) == 0:
-        return ClassifiedEvent("general", 0.5, "General market news", 0.5)
-    
-    best_event = max(event_scores, key=event_scores.get)
-    severity = min(1.0, event_scores[best_event] / 3.0)  # Normalize severity
-    
-    descriptions = {
-        "earnings": "Earnings announcement or financial results",
-        "regulation": "Regulatory action or compliance news",
-        "macro": "Macroeconomic indicator or policy change",
-        "adoption": "Adoption or partnership announcement",
-        "technical": "Technical analysis or price movement"
-    }
-    
-    return ClassifiedEvent(
-        event_type=best_event,
-        severity=severity,
-        description=descriptions.get(best_event, "Market event"),
-        confidence=min(1.0, event_scores[best_event] / 2.0)
-    )
-
-def _calculate_keyword_strength(self, text: str) -> float:
-    """Calculate keyword strength based on market-relevant terms."""
-    market_keywords = {
-        'bullish', 'bearish', 'rally', 'crash', 'surge', 'plunge', 'earnings',
-        'revenue', 'profit', 'loss', 'growth', 'decline', 'adoption', 'partnership',
-        'regulation', 'sec', 'fed', 'inflation', 'cpi', 'gdp', 'interest', 'rates'
-    }
-    
-    words = re.findall(r'\b\w+\b', text.lower())
-    keyword_count = sum(1 for word in words if word in market_keywords)
-    
-    # Normalize by text length
-    text_length = len(words)
-    if text_length == 0:
-        return 0.0
-    
-    strength = keyword_count / text_length
-    return min(1.0, strength * 10)  # Scale to 0-1 range
-
-def _calculate_entity_relevance(self, entities: List[ExtractedEntity]) -> float:
-    """Calculate entity relevance score."""
-    if not entities:
-        return 0.0
-    
-    # Weight by entity type and confidence
-    relevance = 0.0
-    for entity in entities:
-        type_weight = {"crypto": 0.9, "stock": 0.8, "macro": 0.7}.get(entity.entity_type, 0.5)
-        relevance += entity.confidence * type_weight
-    
-    return min(1.0, relevance / len(entities))
-
-def _calculate_confidence(self, factors: SignalFactors) -> float:
-    """Calculate signal confidence using weighted model."""
-    confidence = (
-        abs(factors.sentiment_score) * 0.4 +
-        factors.source_credibility * 0.2 +
-        factors.event_severity * 0.2 +
-        factors.keyword_strength * 0.2
-    )
-    
-    # Apply entity relevance boost
-    confidence *= (1.0 + factors.entity_relevance * 0.2)
-    
-    return min(1.0, confidence)
-
-def _create_signal(self, article: Article, entity: ExtractedEntity, event: ClassifiedEvent, 
-                  factors: SignalFactors, confidence: float) -> Optional[Signal]:
-    """Create a signal from analysis."""
-    # Determine direction based on sentiment
-    if factors.sentiment_score > 0.1:
-        direction = SignalDirection.BUY
-    elif factors.sentiment_score < -0.1:
-        direction = SignalDirection.SELL
-    else:
-        return None  # Neutral sentiment, no signal
-    
-    # Determine urgency based on event severity
-    if event.severity >= 0.8:
-        urgency = Urgency.HIGH
-    elif event.severity >= 0.5:
-        urgency = Urgency.MEDIUM
-    else:
-        """Create fallback signal with lower confidence."""
-        # Use lower confidence for fallback
-        fallback_confidence = max(0.15, abs(sentiment_score) * 0.3)
         
-        direction = SignalDirection.BUY if sentiment_score > 0 else SignalDirection.SELL
-        urgency = Urgency.LOW
-        position_size = 0.1  # Small position size
+        # Calculate position size
+        position_size = self._calculate_position_size(confidence, event.severity)
         
-        reason = f"FALLBACK: {event.event_type.title()} | sentiment: {sentiment_score:+.2f}"
-        
+        # Create signal
         return Signal(
             symbol=entity.symbol,
             direction=direction,
-            confidence=fallback_confidence,
+            confidence=confidence,
             reason=reason,
             urgency=urgency,
             timestamp=article.timestamp,
             article_id=article.url,
             position_size=position_size,
             metadata={
-                "fallback": True,
                 "entity_name": entity.name,
                 "entity_type": entity.entity_type,
                 "event_type": event.event_type,
-                "sentiment_score": sentiment_score
+                "sentiment_score": factors.sentiment_score,
+                "source_credibility": factors.source_credibility,
+                "event_severity": event.severity
             }
         )
     

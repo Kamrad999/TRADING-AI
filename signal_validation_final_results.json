@@ -1,0 +1,10 @@
+{
+  "total_runs": 5,
+  "successful_runs": 5,
+  "total_articles": 50,
+  "total_validated": 50,
+  "total_signals": 0,
+  "signal_rate": 0.0,
+  "test_signal_rate": 0.0,
+  "verdict": "BROKEN"
+}

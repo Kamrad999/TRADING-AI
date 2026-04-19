@@ -60,27 +60,22 @@ class EventClassification:
 
 class EventClassifier:
     """
-    Event classifier following Qlib and FinRL patterns.
+    LLM-based Event classifier following Qlib and FinRL patterns.
     
     Key features:
-    - Multi-dimensional event classification
+    - LLM-based contextual classification (NO keyword matching)
     - Impact scoring based on historical patterns
     - Time horizon prediction
     - Symbol-specific impact analysis
     - Market regime correlation
     """
     
-    def __init__(self):
-        """Initialize event classifier."""
+    def __init__(self, llm_client=None):
+        """Initialize event classifier with optional LLM client."""
         self.logger = get_logger("event_classifier")
+        self.llm_client = llm_client
         
-        # Classification patterns
-        self._initialize_classification_patterns()
-        
-        # Impact scoring models
-        self._initialize_impact_models()
-        
-        # Historical event database
+        # Historical event database for pattern learning
         self.event_history: List[Dict[str, Any]] = []
         
         # Performance tracking
@@ -91,152 +86,90 @@ class EventClassifier:
             "horizon_distribution": defaultdict(int)
         }
         
-        self.logger.info("EventClassifier initialized with institutional-grade patterns")
+        self.logger.info("EventClassifier initialized with LLM-based contextual reasoning")
     
-    def _initialize_classification_patterns(self) -> None:
-        """Initialize classification patterns for event types."""
-        self.classification_patterns = {
-            EventType.MACRO_ECONOMIC: {
-                "keywords": [
-                    "inflation", "cpi", "fed", "interest rate", "gdp", "unemployment",
-                    "recession", "economic growth", "monetary policy", "quantitative easing",
-                    "fomc", "central bank", "economic data", "market volatility"
-                ],
-                "impact_keywords": {
-                    ImpactLevel.CRITICAL: ["rate hike", "rate cut", "recession", "inflation spike"],
-                    ImpactLevel.HIGH: ["gdp growth", "unemployment rate", "cpi data"],
-                    ImpactLevel.MEDIUM: ["economic indicators", "market sentiment"],
-                    ImpactLevel.LOW: ["minor economic news", "market commentary"]
-                },
-                "time_horizons": {
-                    TimeHorizon.IMMEDIATE: ["rate decision", "emergency meeting"],
-                    TimeHorizon.SHORT: ["economic data release", "fed statement"],
-                    TimeHorizon.MEDIUM: ["gdp report", "inflation data"],
-                    TimeHorizon.LONG: ["monetary policy", "economic outlook"]
-                }
-            },
-            
-            EventType.CRYPTO_SPECIFIC: {
-                "keywords": [
-                    "bitcoin", "btc", "ethereum", "eth", "crypto", "blockchain",
-                    "defi", "nft", "mining", "hash rate", "whale", "exchange",
-                    "binance", "coinbase", "regulation", "sec", "etf"
-                ],
-                "impact_keywords": {
-                    ImpactLevel.CRITICAL: ["sec approval", "etf launch", "exchange hack", "ban"],
-                    ImpactLevel.HIGH: ["regulation", "whale movement", "exchange listing"],
-                    ImpactLevel.MEDIUM: ["adoption news", "technical developments"],
-                    ImpactLevel.LOW: ["market commentary", "price analysis"]
-                },
-                "time_horizons": {
-                    TimeHorizon.IMMEDIATE: ["hack", "exchange failure", "regulation"],
-                    TimeHorizon.SHORT: ["whale movement", "large transaction"],
-                    TimeHorizon.MEDIUM: ["adoption", "partnership", "listing"],
-                    TimeHorizon.LONG: ["regulatory changes", "etf approval"]
-                }
-            },
-            
-            EventType.EARNINGS: {
-                "keywords": [
-                    "earnings", "revenue", "profit", "quarterly", "annual", "eps",
-                    "guidance", "forecast", "beat", "miss", "analyst", "estimate"
-                ],
-                "impact_keywords": {
-                    ImpactLevel.CRITICAL: ["bankruptcy", "merger", "acquisition"],
-                    ImpactLevel.HIGH: ["earnings beat/miss", "guidance change"],
-                    ImpactLevel.MEDIUM: ["quarterly results", "revenue growth"],
-                    ImpactLevel.LOW: ["analyst upgrade/downgrade", "price target"]
-                },
-                "time_horizons": {
-                    TimeHorizon.IMMEDIATE: ["earnings surprise", "guidance"],
-                    TimeHorizon.SHORT: ["quarterly results", "analyst reaction"],
-                    TimeHorizon.MEDIUM: ["annual results", "strategic changes"],
-                    TimeHorizon.LONG: ["merger", "acquisition", "restructuring"]
-                }
-            },
-            
-            EventType.REGULATORY: {
-                "keywords": [
-                    "regulation", "sec", "fca", "esma", "compliance", "investigation",
-                    "lawsuit", "fine", "penalty", "approval", "rejection", "ban"
-                ],
-                "impact_keywords": {
-                    ImpactLevel.CRITICAL: ["market ban", "major fine", "criminal charges"],
-                    ImpactLevel.HIGH: ["regulatory approval", "investigation", "lawsuit"],
-                    ImpactLevel.MEDIUM: ["compliance issues", "minor fines"],
-                    ImpactLevel.LOW: ["regulatory commentary", "policy discussion"]
-                },
-                "time_horizons": {
-                    TimeHorizon.IMMEDIATE: ["emergency action", "trading halt"],
-                    TimeHorizon.SHORT: ["regulatory decision", "fine announcement"],
-                    TimeHorizon.MEDIUM: ["investigation results", "compliance deadline"],
-                    TimeHorizon.LONG: ["regulatory changes", "policy implementation"]
-                }
-            },
-            
-            EventType.GEOPOLITICAL: {
-                "keywords": [
-                    "war", "conflict", "sanctions", "trade war", "geopolitical",
-                    "election", "political", "government", "policy", "tension"
-                ],
-                "impact_keywords": {
-                    ImpactLevel.CRITICAL: ["war", "major sanctions", "government collapse"],
-                    ImpactLevel.HIGH: ["election results", "trade sanctions"],
-                    ImpactLevel.MEDIUM: ["political tension", "policy changes"],
-                    ImpactLevel.LOW: ["political commentary", "diplomatic news"]
-                },
-                "time_horizons": {
-                    TimeHorizon.IMMEDIATE: ["military conflict", "emergency sanctions"],
-                    TimeHorizon.SHORT: ["election results", "policy announcements"],
-                    TimeHorizon.MEDIUM: ["trade negotiations", "sanctions"],
-                    TimeHorizon.LONG: ["geopolitical tensions", "long-term policies"]
-                }
-            }
-        }
-    
-    def _initialize_impact_models(self) -> None:
-        """Initialize impact scoring models."""
-        self.impact_models = {
-            "keyword_weight": 0.3,
-            "sentiment_weight": 0.25,
-            "volume_weight": 0.2,
-            "timing_weight": 0.15,
-            "historical_weight": 0.1
-        }
+    def _get_llm_classification(self, text: str, symbol: str = "") -> Dict[str, Any]:
+        """Get LLM-based classification for event text."""
+        if not self.llm_client:
+            self.logger.warning("No LLM client available, using fallback")
+            return self._fallback_classification(text, symbol)
         
-        # Historical impact patterns
-        self.historical_impacts = {
-            EventType.MACRO_ECONOMIC: {
-                ImpactLevel.CRITICAL: 0.85,
-                ImpactLevel.HIGH: 0.65,
-                ImpactLevel.MEDIUM: 0.45,
-                ImpactLevel.LOW: 0.25
-            },
-            EventType.CRYPTO_SPECIFIC: {
-                ImpactLevel.CRITICAL: 0.90,
-                ImpactLevel.HIGH: 0.70,
-                ImpactLevel.MEDIUM: 0.50,
-                ImpactLevel.LOW: 0.30
-            },
-            EventType.EARNINGS: {
-                ImpactLevel.CRITICAL: 0.80,
-                ImpactLevel.HIGH: 0.60,
-                ImpactLevel.MEDIUM: 0.40,
-                ImpactLevel.LOW: 0.20
-            },
-            EventType.REGULATORY: {
-                ImpactLevel.CRITICAL: 0.95,
-                ImpactLevel.HIGH: 0.75,
-                ImpactLevel.MEDIUM: 0.55,
-                ImpactLevel.LOW: 0.35
-            },
-            EventType.GEOPOLITICAL: {
-                ImpactLevel.CRITICAL: 0.75,
-                ImpactLevel.HIGH: 0.55,
-                ImpactLevel.MEDIUM: 0.35,
-                ImpactLevel.LOW: 0.15
-            }
+        prompt = f"""You are an expert financial event classifier. Analyze this market news/event and classify it.
+
+EVENT TEXT:
+{text[:2000]}
+
+SYMBOL: {symbol}
+
+CLASSIFY into EXACTLY this JSON format:
+{{
+    "event_type": "macro_economic|crypto_specific|earnings|regulatory|technical|sentiment|liquidity|geopolitical",
+    "impact_level": "critical|high|medium|low|none",
+    "time_horizon": "immediate|short|medium|long|extended",
+    "confidence": 0.0-1.0,
+    "reasoning": "Clear explanation of classification",
+    "symbols_affected": ["SYM1", "SYM2"],
+    "market_regime_impact": {{"risk_on": -1.0 to 1.0, "risk_off": -1.0 to 1.0, "sideways": -1.0 to 1.0}}
+}}
+
+GUIDELINES:
+- Consider context, not just keywords
+- Assess actual market-moving potential
+- Handle ambiguous cases with lower confidence
+- If text is unrelated to markets, set confidence < 0.3"""
+        
+        try:
+            response = self.llm_client.generate(prompt=prompt, temperature=0.2, max_tokens=800)
+            result = self._parse_llm_response(response)
+            if result:
+                return result
+        except Exception as e:
+            self.logger.error(f"LLM classification failed: {e}")
+        
+        return self._fallback_classification(text, symbol)
+    
+    def _parse_llm_response(self, response: str) -> Optional[Dict[str, Any]]:
+        """Parse LLM JSON response."""
+        import json
+        try:
+            start = response.find('{')
+            end = response.rfind('}')
+            if start != -1 and end != -1:
+                return json.loads(response[start:end+1])
+        except json.JSONDecodeError:
+            pass
+        return None
+    
+    def _fallback_classification(self, text: str, symbol: str) -> Dict[str, Any]:
+        """Fallback classification when LLM is unavailable."""
+        text_lower = text.lower()
+        
+        # Simple pattern detection (minimal keyword use as last resort)
+        if any(word in text_lower for word in ["bitcoin", "ethereum", "crypto", "blockchain"]):
+            event_type = "crypto_specific"
+        elif any(word in text_lower for word in ["earnings", "revenue", "profit", "quarterly"]):
+            event_type = "earnings"
+        elif any(word in text_lower for word in ["fed", "inflation", "interest rate", "gdp"]):
+            event_type = "macro_economic"
+        elif any(word in text_lower for word in ["sec", "regulation", "compliance", "investigation"]):
+            event_type = "regulatory"
+        elif any(word in text_lower for word in ["war", "sanctions", "election", "geopolitical"]):
+            event_type = "geopolitical"
+        else:
+            event_type = "sentiment"
+        
+        return {
+            "event_type": event_type,
+            "impact_level": "medium",
+            "time_horizon": "short",
+            "confidence": 0.4,
+            "reasoning": "Fallback classification (LLM unavailable)",
+            "symbols_affected": [symbol] if symbol else [],
+            "market_regime_impact": {"risk_on": 0.0, "risk_off": 0.0, "sideways": 0.0}
         }
+    
+    # NOTE: All keyword-based classification removed
+    # Classification is now done via LLM in _get_llm_classification method
     
     def classify_event(self, title: str, content: str, timestamp: datetime, 
                       symbols: List[str] = None) -> EventClassification:
@@ -254,28 +187,19 @@ class EventClassifier:
         """
         try:
             # Combine title and content for analysis
-            full_text = f"{title} {content}".lower()
+            full_text = f"{title} {content}"
             
-            # Classify event type
-            event_type = self._classify_event_type(full_text)
+            # Get LLM-based classification
+            llm_result = self._get_llm_classification(full_text, symbols[0] if symbols else "")
             
-            # Determine impact level
-            impact_level = self._determine_impact_level(full_text, event_type)
-            
-            # Predict time horizon
-            time_horizon = self._predict_time_horizon(full_text, event_type, impact_level)
-            
-            # Calculate confidence
-            confidence = self._calculate_classification_confidence(full_text, event_type, impact_level)
-            
-            # Identify affected symbols
-            affected_symbols = self._identify_affected_symbols(full_text, symbols)
-            
-            # Calculate market regime impact
-            regime_impact = self._calculate_regime_impact(event_type, impact_level, affected_symbols)
-            
-            # Generate reasoning
-            reasoning = self._generate_classification_reasoning(event_type, impact_level, time_horizon, full_text)
+            # Parse LLM result into enums
+            event_type = self._parse_event_type(llm_result.get("event_type", "sentiment"))
+            impact_level = self._parse_impact_level(llm_result.get("impact_level", "low"))
+            time_horizon = self._parse_time_horizon(llm_result.get("time_horizon", "short"))
+            confidence = float(llm_result.get("confidence", 0.5))
+            affected_symbols = llm_result.get("symbols_affected", symbols or [])
+            regime_impact = llm_result.get("market_regime_impact", {})
+            reasoning = llm_result.get("reasoning", "LLM-based classification")
             
             # Create classification result
             classification = EventClassification(
@@ -290,7 +214,8 @@ class EventClassifier:
                     "title": title,
                     "content": content,
                     "timestamp": timestamp,
-                    "classification_timestamp": datetime.now()
+                    "classification_timestamp": datetime.now(),
+                    "llm_raw": llm_result
                 }
             )
             
@@ -300,7 +225,7 @@ class EventClassifier:
             # Update stats
             self._update_classification_stats(classification)
             
-            self.logger.info(f"Event classified: {event_type.value} | Impact: {impact_level.name} | Horizon: {time_horizon.value}")
+            self.logger.info(f"Event classified: {event_type.value} | Impact: {impact_level.name} | Horizon: {time_horizon.value} | LLM conf: {confidence:.2f}")
             
             return classification
             
@@ -317,124 +242,44 @@ class EventClassifier:
                 reasoning=f"Classification failed: {str(e)}"
             )
     
-    def _classify_event_type(self, text: str) -> EventType:
-        """Classify event type based on text analysis."""
-        type_scores = {}
-        
-        for event_type, patterns in self.classification_patterns.items():
-            score = 0
-            
-            # Keyword matching
-            for keyword in patterns["keywords"]:
-                if keyword in text:
-                    score += 1
-            
-            # Normalize by keyword count
-            if patterns["keywords"]:
-                score /= len(patterns["keywords"])
-            
-            type_scores[event_type] = score
-        
-        # Return type with highest score
-        if type_scores:
-            return max(type_scores, key=type_scores.get)
-        
-        return EventType.SENTIMENT
+    def _parse_event_type(self, event_type_str: str) -> EventType:
+        """Parse event type string to enum."""
+        type_map = {
+            "macro_economic": EventType.MACRO_ECONOMIC,
+            "crypto_specific": EventType.CRYPTO_SPECIFIC,
+            "earnings": EventType.EARNINGS,
+            "regulatory": EventType.REGULATORY,
+            "technical": EventType.TECHNICAL,
+            "sentiment": EventType.SENTIMENT,
+            "liquidity": EventType.LIQUIDITY,
+            "geopolitical": EventType.GEOPOLITICAL
+        }
+        return type_map.get(event_type_str.lower(), EventType.SENTIMENT)
     
-    def _determine_impact_level(self, text: str, event_type: EventType) -> ImpactLevel:
-        """Determine impact level based on text analysis."""
-        if event_type not in self.classification_patterns:
-            return ImpactLevel.MEDIUM
-        
-        patterns = self.classification_patterns[event_type]
-        impact_scores = {}
-        
-        for impact_level, keywords in patterns["impact_keywords"].items():
-            score = 0
-            
-            for keyword in keywords:
-                if keyword in text:
-                    score += 2  # Higher weight for impact keywords
-            
-            # Add historical probability
-            historical_prob = self.historical_impacts.get(event_type, {}).get(impact_level, 0.5)
-            score += historical_prob * 3
-            
-            impact_scores[impact_level] = score
-        
-        if impact_scores:
-            return max(impact_scores, key=impact_scores.get)
-        
-        return ImpactLevel.MEDIUM
+    def _parse_impact_level(self, impact_str: str) -> ImpactLevel:
+        """Parse impact level string to enum."""
+        impact_map = {
+            "critical": ImpactLevel.CRITICAL,
+            "high": ImpactLevel.HIGH,
+            "medium": ImpactLevel.MEDIUM,
+            "low": ImpactLevel.LOW,
+            "none": ImpactLevel.NONE
+        }
+        return impact_map.get(impact_str.lower(), ImpactLevel.MEDIUM)
     
-    def _predict_time_horizon(self, text: str, event_type: EventType, impact_level: ImpactLevel) -> TimeHorizon:
-        """Predict time horizon for market reaction."""
-        if event_type not in self.classification_patterns:
-            return TimeHorizon.SHORT
-        
-        patterns = self.classification_patterns[event_type]
-        horizon_scores = {}
-        
-        for time_horizon, keywords in patterns["time_horizons"].items():
-            score = 0
-            
-            for keyword in keywords:
-                if keyword in text:
-                    score += 1
-            
-            # Adjust based on impact level
-            if impact_level == ImpactLevel.CRITICAL:
-                if time_horizon in [TimeHorizon.IMMEDIATE, TimeHorizon.SHORT]:
-                    score += 2
-            elif impact_level == ImpactLevel.HIGH:
-                if time_horizon in [TimeHorizon.SHORT, TimeHorizon.MEDIUM]:
-                    score += 1
-            
-            horizon_scores[time_horizon] = score
-        
-        if horizon_scores:
-            return max(horizon_scores, key=horizon_scores.get)
-        
-        return TimeHorizon.SHORT
+    def _parse_time_horizon(self, horizon_str: str) -> TimeHorizon:
+        """Parse time horizon string to enum."""
+        horizon_map = {
+            "immediate": TimeHorizon.IMMEDIATE,
+            "short": TimeHorizon.SHORT,
+            "medium": TimeHorizon.MEDIUM,
+            "long": TimeHorizon.LONG,
+            "extended": TimeHorizon.EXTENDED
+        }
+        return horizon_map.get(horizon_str.lower(), TimeHorizon.SHORT)
     
-    def _calculate_classification_confidence(self, text: str, event_type: EventType, impact_level: ImpactLevel) -> float:
-        """Calculate confidence in classification."""
-        confidence = 0.5  # Base confidence
-        
-        # Keyword confidence
-        if event_type in self.classification_patterns:
-            patterns = self.classification_patterns[event_type]
-            keyword_matches = sum(1 for kw in patterns["keywords"] if kw in text)
-            keyword_confidence = min(1.0, keyword_matches / len(patterns["keywords"]))
-            confidence += keyword_confidence * 0.3
-        
-        # Impact level confidence
-        impact_confidence = self.historical_impacts.get(event_type, {}).get(impact_level, 0.5)
-        confidence += impact_confidence * 0.2
-        
-        # Text length confidence (more text = more context)
-        text_confidence = min(1.0, len(text) / 1000)
-        confidence += text_confidence * 0.1
-        
-        return min(1.0, confidence)
-    
-    def _identify_affected_symbols(self, text: str, provided_symbols: List[str]) -> List[str]:
-        """Identify symbols affected by the event."""
-        affected = set()
-        
-        # Use provided symbols
-        if provided_symbols:
-            affected.update(provided_symbols)
-        
-        # Extract symbols from text
-        crypto_symbols = ["btc", "bitcoin", "eth", "ethereum", "bnb", "binance", "sol", "solana"]
-        stock_symbols = ["aapl", "apple", "msft", "microsoft", "googl", "google", "amzn", "amazon"]
-        
-        for symbol in crypto_symbols + stock_symbols:
-            if symbol in text:
-                affected.add(symbol.upper())
-        
-        return list(affected)
+    # NOTE: These methods removed - LLM now handles time horizon and confidence
+    # Symbol extraction is done via LLM in _get_llm_classification
     
     def _calculate_regime_impact(self, event_type: EventType, impact_level: ImpactLevel, symbols: List[str]) -> Dict[str, float]:
         """Calculate impact on different market regimes."""
@@ -476,23 +321,7 @@ class EventClassifier:
         
         return regime_impacts
     
-    def _generate_classification_reasoning(self, event_type: EventType, impact_level: ImpactLevel, 
-                                         time_horizon: TimeHorizon, text: str) -> str:
-        """Generate reasoning for classification."""
-        reasoning_parts = []
-        
-        reasoning_parts.append(f"Classified as {event_type.value.replace('_', ' ').title()}")
-        reasoning_parts.append(f"Impact level: {impact_level.name}")
-        reasoning_parts.append(f"Expected reaction time: {time_horizon.value}")
-        
-        # Add key factors
-        if event_type in self.classification_patterns:
-            patterns = self.classification_patterns[event_type]
-            matched_keywords = [kw for kw in patterns["keywords"] if kw in text]
-            if matched_keywords:
-                reasoning_parts.append(f"Key indicators: {', '.join(matched_keywords[:3])}")
-        
-        return " | ".join(reasoning_parts)
+    # NOTE: _generate_classification_reasoning removed - reasoning comes directly from LLM
     
     def _store_classification(self, classification: EventClassification) -> None:
         """Store classification in history."""

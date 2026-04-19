@@ -1,0 +1,9 @@
+{
+  "total_runs": 10,
+  "successful_runs": 10,
+  "total_articles": 10,
+  "total_validated": 10,
+  "total_signals": 0,
+  "signal_rate": 0.0,
+  "verdict": "BROKEN"
+}

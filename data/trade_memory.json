@@ -1,0 +1,784 @@
+{
+  "trades": [
+    {
+      "trade_id": "test_001",
+      "symbol": "BTC",
+      "direction": "BUY",
+      "quantity": 0.1,
+      "entry_price": 50000.0,
+      "exit_price": 52000.0,
+      "entry_time": "2026-04-15 22:14:55.084132",
+      "exit_time": "2026-04-16 10:14:55.084132",
+      "stop_loss": 47500.0,
+      "take_profit": 55000.0,
+      "pnl": 200.0,
+      "pnl_pct": 0.04,
+      "status": "closed",
+      "fees": 10.0,
+      "confidence": 0.8,
+      "reasoning": "Strong bullish momentum",
+      "market_conditions": {
+        "regime": "bullish",
+        "volatility": 0.03
+      },
+      "agent_decisions": [
+        {
+          "agent": "news_agent",
+          "action": "BUY",
+          "confidence": 0.8
+        },
+        {
+          "agent": "technical_agent",
+          "action": "BUY",
+          "confidence": 0.7
+        }
+      ],
+      "metadata": {
+        "test": true
+      }
+    },
+    {
+      "trade_id": "test_001",
+      "symbol": "BTC",
+      "direction": "BUY",
+      "quantity": 0.1,
+      "entry_price": 50000.0,
+      "exit_price": 52000.0,
+      "entry_time": "2026-04-15 22:15:23.084247",
+      "exit_time": "2026-04-16 10:15:23.084247",
+      "stop_loss": 47500.0,
+      "take_profit": 55000.0,
+      "pnl": 200.0,
+      "pnl_pct": 0.04,
+      "status": "closed",
+      "fees": 10.0,
+      "confidence": 0.8,
+      "reasoning": "Strong bullish momentum",
+      "market_conditions": {
+        "regime": "bullish",
+        "volatility": 0.03
+      },
+      "agent_decisions": [
+        {
+          "agent": "news_agent",
+          "action": "BUY",
+          "confidence": 0.8
+        },
+        {
+          "agent": "technical_agent",
+          "action": "BUY",
+          "confidence": 0.7
+        }
+      ],
+      "metadata": {
+        "test": true
+      }
+    },
+    {
+      "trade_id": "test_001",
+      "symbol": "BTC",
+      "direction": "BUY",
+      "quantity": 0.1,
+      "entry_price": 50000.0,
+      "exit_price": 52000.0,
+      "entry_time": "2026-04-15 22:15:48.408994",
+      "exit_time": "2026-04-16 10:15:48.408994",
+      "stop_loss": 47500.0,
+      "take_profit": 55000.0,
+      "pnl": 200.0,
+      "pnl_pct": 0.04,
+      "status": "closed",
+      "fees": 10.0,
+      "confidence": 0.8,
+      "reasoning": "Strong bullish momentum",
+      "market_conditions": {
+        "regime": "bullish",
+        "volatility": 0.03
+      },
+      "agent_decisions": [
+        {
+          "agent": "news_agent",
+          "action": "BUY",
+          "confidence": 0.8
+        },
+        {
+          "agent": "technical_agent",
+          "action": "BUY",
+          "confidence": 0.7
+        }
+      ],
+      "metadata": {
+        "test": true
+      }
+    },
+    {
+      "trade_id": "test_001",
+      "symbol": "BTC",
+      "direction": "BUY",
+      "quantity": 0.1,
+      "entry_price": 50000.0,
+      "exit_price": 52000.0,
+      "entry_time": "2026-04-15 22:16:21.977932",
+      "exit_time": "2026-04-16 10:16:21.977932",
+      "stop_loss": 47500.0,
+      "take_profit": 55000.0,
+      "pnl": 200.0,
+      "pnl_pct": 0.04,
+      "status": "closed",
+      "fees": 10.0,
+      "confidence": 0.8,
+      "reasoning": "Strong bullish momentum",
+      "market_conditions": {
+        "regime": "bullish",
+        "volatility": 0.03
+      },
+      "agent_decisions": [
+        {
+          "agent": "news_agent",
+          "action": "BUY",
+          "confidence": 0.8
+        },
+        {
+          "agent": "technical_agent",
+          "action": "BUY",
+          "confidence": 0.7
+        }
+      ],
+      "metadata": {
+        "test": true
+      }
+    },
+    {
+      "trade_id": "test_001",
+      "symbol": "BTC",
+      "direction": "BUY",
+      "quantity": 0.1,
+      "entry_price": 50000.0,
+      "exit_price": 52000.0,
+      "entry_time": "2026-04-15 22:16:38.475425",
+      "exit_time": "2026-04-16 10:16:38.475425",
+      "stop_loss": 47500.0,
+      "take_profit": 55000.0,
+      "pnl": 200.0,
+      "pnl_pct": 0.04,
+      "status": "closed",
+      "fees": 10.0,
+      "confidence": 0.8,
+      "reasoning": "Strong bullish momentum",
+      "market_conditions": {
+        "regime": "bullish",
+        "volatility": 0.03
+      },
+      "agent_decisions": [
+        {
+          "agent": "news_agent",
+          "action": "BUY",
+          "confidence": 0.8
+        },
+        {
+          "agent": "technical_agent",
+          "action": "BUY",
+          "confidence": 0.7
+        }
+      ],
+      "metadata": {
+        "test": true
+      }
+    },
+    {
+      "trade_id": "test_001",
+      "symbol": "BTC",
+      "direction": "BUY",
+      "quantity": 0.1,
+      "entry_price": 50000.0,
+      "exit_price": 52000.0,
+      "entry_time": "2026-04-15 22:17:06.717269",
+      "exit_time": "2026-04-16 10:17:06.717269",
+      "stop_loss": 47500.0,
+      "take_profit": 55000.0,
+      "pnl": 200.0,
+      "pnl_pct": 0.04,
+      "status": "closed",
+      "fees": 10.0,
+      "confidence": 0.8,
+      "reasoning": "Strong bullish momentum",
+      "market_conditions": {
+        "regime": "bullish",
+        "volatility": 0.03
+      },
+      "agent_decisions": [
+        {
+          "agent": "news_agent",
+          "action": "BUY",
+          "confidence": 0.8
+        },
+        {
+          "agent": "technical_agent",
+          "action": "BUY",
+          "confidence": 0.7
+        }
+      ],
+      "metadata": {
+        "test": true
+      }
+    },
+    {
+      "trade_id": "test_001",
+      "symbol": "BTC",
+      "direction": "BUY",
+      "quantity": 0.1,
+      "entry_price": 50000.0,
+      "exit_price": 52000.0,
+      "entry_time": "2026-04-15 22:17:55.072140",
+      "exit_time": "2026-04-16 10:17:55.072140",
+      "stop_loss": 47500.0,
+      "take_profit": 55000.0,
+      "pnl": 200.0,
+      "pnl_pct": 0.04,
+      "status": "closed",
+      "fees": 10.0,
+      "confidence": 0.8,
+      "reasoning": "Strong bullish momentum",
+      "market_conditions": {
+        "regime": "bullish",
+        "volatility": 0.03
+      },
+      "agent_decisions": [
+        {
+          "agent": "news_agent",
+          "action": "BUY",
+          "confidence": 0.8
+        },
+        {
+          "agent": "technical_agent",
+          "action": "BUY",
+          "confidence": 0.7
+        }
+      ],
+      "metadata": {
+        "test": true
+      }
+    },
+    {
+      "trade_id": "test_001",
+      "symbol": "BTC",
+      "direction": "BUY",
+      "quantity": 0.1,
+      "entry_price": 50000.0,
+      "exit_price": 52000.0,
+      "entry_time": "2026-04-15 22:18:31.158310",
+      "exit_time": "2026-04-16 10:18:31.158310",
+      "stop_loss": 47500.0,
+      "take_profit": 55000.0,
+      "pnl": 200.0,
+      "pnl_pct": 0.04,
+      "status": "closed",
+      "fees": 10.0,
+      "confidence": 0.8,
+      "reasoning": "Strong bullish momentum",
+      "market_conditions": {
+        "regime": "bullish",
+        "volatility": 0.03
+      },
+      "agent_decisions": [
+        {
+          "agent": "news_agent",
+          "action": "BUY",
+          "confidence": 0.8
+        },
+        {
+          "agent": "technical_agent",
+          "action": "BUY",
+          "confidence": 0.7
+        }
+      ],
+      "metadata": {
+        "test": true
+      }
+    },
+    {
+      "trade_id": "test_001",
+      "symbol": "BTC",
+      "direction": "BUY",
+      "quantity": 0.1,
+      "entry_price": 50000.0,
+      "exit_price": 52000.0,
+      "entry_time": "2026-04-15 22:18:57.138912",
+      "exit_time": "2026-04-16 10:18:57.138912",
+      "stop_loss": 47500.0,
+      "take_profit": 55000.0,
+      "pnl": 200.0,
+      "pnl_pct": 0.04,
+      "status": "closed",
+      "fees": 10.0,
+      "confidence": 0.8,
+      "reasoning": "Strong bullish momentum",
+      "market_conditions": {
+        "regime": "bullish",
+        "volatility": 0.03
+      },
+      "agent_decisions": [
+        {
+          "agent": "news_agent",
+          "action": "BUY",
+          "confidence": 0.8
+        },
+        {
+          "agent": "technical_agent",
+          "action": "BUY",
+          "confidence": 0.7
+        }
+      ],
+      "metadata": {
+        "test": true
+      }
+    },
+    {
+      "trade_id": "test_001",
+      "symbol": "BTC",
+      "direction": "BUY",
+      "quantity": 0.1,
+      "entry_price": 50000.0,
+      "exit_price": 52000.0,
+      "entry_time": "2026-04-15 22:19:33.170687",
+      "exit_time": "2026-04-16 10:19:33.170687",
+      "stop_loss": 47500.0,
+      "take_profit": 55000.0,
+      "pnl": 200.0,
+      "pnl_pct": 0.04,
+      "status": "closed",
+      "fees": 10.0,
+      "confidence": 0.8,
+      "reasoning": "Strong bullish momentum",
+      "market_conditions": {
+        "regime": "bullish",
+        "volatility": 0.03
+      },
+      "agent_decisions": [
+        {
+          "agent": "news_agent",
+          "action": "BUY",
+          "confidence": 0.8
+        },
+        {
+          "agent": "technical_agent",
+          "action": "BUY",
+          "confidence": 0.7
+        }
+      ],
+      "metadata": {
+        "test": true
+      }
+    },
+    {
+      "trade_id": "test_001",
+      "symbol": "BTC",
+      "direction": "BUY",
+      "quantity": 0.1,
+      "entry_price": 50000.0,
+      "exit_price": 52000.0,
+      "entry_time": "2026-04-15 22:20:03.199046",
+      "exit_time": "2026-04-16 10:20:03.199046",
+      "stop_loss": 47500.0,
+      "take_profit": 55000.0,
+      "pnl": 200.0,
+      "pnl_pct": 0.04,
+      "status": "closed",
+      "fees": 10.0,
+      "confidence": 0.8,
+      "reasoning": "Strong bullish momentum",
+      "market_conditions": {
+        "regime": "bullish",
+        "volatility": 0.03
+      },
+      "agent_decisions": [
+        {
+          "agent": "news_agent",
+          "action": "BUY",
+          "confidence": 0.8
+        },
+        {
+          "agent": "technical_agent",
+          "action": "BUY",
+          "confidence": 0.7
+        }
+      ],
+      "metadata": {
+        "test": true
+      }
+    },
+    {
+      "trade_id": "test_001",
+      "symbol": "BTC",
+      "direction": "BUY",
+      "quantity": 0.1,
+      "entry_price": 50000.0,
+      "exit_price": 52000.0,
+      "entry_time": "2026-04-15 22:20:37.631918",
+      "exit_time": "2026-04-16 10:20:37.631918",
+      "stop_loss": 47500.0,
+      "take_profit": 55000.0,
+      "pnl": 200.0,
+      "pnl_pct": 0.04,
+      "status": "closed",
+      "fees": 10.0,
+      "confidence": 0.8,
+      "reasoning": "Strong bullish momentum",
+      "market_conditions": {
+        "regime": "bullish",
+        "volatility": 0.03
+      },
+      "agent_decisions": [
+        {
+          "agent": "news_agent",
+          "action": "BUY",
+          "confidence": 0.8
+        },
+        {
+          "agent": "technical_agent",
+          "action": "BUY",
+          "confidence": 0.7
+        }
+      ],
+      "metadata": {
+        "test": true
+      }
+    },
+    {
+      "trade_id": "test_001",
+      "symbol": "BTC",
+      "direction": "BUY",
+      "quantity": 0.1,
+      "entry_price": 50000.0,
+      "exit_price": 52000.0,
+      "entry_time": "2026-04-15 22:21:40.060621",
+      "exit_time": "2026-04-16 10:21:40.060621",
+      "stop_loss": 47500.0,
+      "take_profit": 55000.0,
+      "pnl": 200.0,
+      "pnl_pct": 0.04,
+      "status": "closed",
+      "fees": 10.0,
+      "confidence": 0.8,
+      "reasoning": "Strong bullish momentum",
+      "market_conditions": {
+        "regime": "bullish",
+        "volatility": 0.03
+      },
+      "agent_decisions": [
+        {
+          "agent": "news_agent",
+          "action": "BUY",
+          "confidence": 0.8
+        },
+        {
+          "agent": "technical_agent",
+          "action": "BUY",
+          "confidence": 0.7
+        }
+      ],
+      "metadata": {
+        "test": true
+      }
+    }
+  ],
+  "patterns": [
+    {
+      "pattern_type": "winning_high_confidence",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 5,
+      "conditions": {
+        "high_confidence": true
+      },
+      "discovered_at": "2026-04-16 22:16:38.475425"
+    },
+    {
+      "pattern_type": "winning_bullish_regime",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 5,
+      "conditions": {
+        "bullish_regime": true
+      },
+      "discovered_at": "2026-04-16 22:16:38.475425"
+    },
+    {
+      "pattern_type": "winning_low_volatility",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 5,
+      "conditions": {
+        "low_volatility": true
+      },
+      "discovered_at": "2026-04-16 22:16:38.475425"
+    },
+    {
+      "pattern_type": "winning_high_confidence",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 6,
+      "conditions": {
+        "high_confidence": true
+      },
+      "discovered_at": "2026-04-16 22:17:06.717269"
+    },
+    {
+      "pattern_type": "winning_bullish_regime",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 6,
+      "conditions": {
+        "bullish_regime": true
+      },
+      "discovered_at": "2026-04-16 22:17:06.717269"
+    },
+    {
+      "pattern_type": "winning_low_volatility",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 6,
+      "conditions": {
+        "low_volatility": true
+      },
+      "discovered_at": "2026-04-16 22:17:06.717269"
+    },
+    {
+      "pattern_type": "winning_high_confidence",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 7,
+      "conditions": {
+        "high_confidence": true
+      },
+      "discovered_at": "2026-04-16 22:17:55.072140"
+    },
+    {
+      "pattern_type": "winning_bullish_regime",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 7,
+      "conditions": {
+        "bullish_regime": true
+      },
+      "discovered_at": "2026-04-16 22:17:55.072140"
+    },
+    {
+      "pattern_type": "winning_low_volatility",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 7,
+      "conditions": {
+        "low_volatility": true
+      },
+      "discovered_at": "2026-04-16 22:17:55.072140"
+    },
+    {
+      "pattern_type": "winning_high_confidence",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 8,
+      "conditions": {
+        "high_confidence": true
+      },
+      "discovered_at": "2026-04-16 22:18:31.158310"
+    },
+    {
+      "pattern_type": "winning_bullish_regime",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 8,
+      "conditions": {
+        "bullish_regime": true
+      },
+      "discovered_at": "2026-04-16 22:18:31.158310"
+    },
+    {
+      "pattern_type": "winning_low_volatility",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 8,
+      "conditions": {
+        "low_volatility": true
+      },
+      "discovered_at": "2026-04-16 22:18:31.158310"
+    },
+    {
+      "pattern_type": "winning_high_confidence",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 9,
+      "conditions": {
+        "high_confidence": true
+      },
+      "discovered_at": "2026-04-16 22:18:57.138912"
+    },
+    {
+      "pattern_type": "winning_bullish_regime",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 9,
+      "conditions": {
+        "bullish_regime": true
+      },
+      "discovered_at": "2026-04-16 22:18:57.138912"
+    },
+    {
+      "pattern_type": "winning_low_volatility",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 9,
+      "conditions": {
+        "low_volatility": true
+      },
+      "discovered_at": "2026-04-16 22:18:57.138912"
+    },
+    {
+      "pattern_type": "winning_high_confidence",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 10,
+      "conditions": {
+        "high_confidence": true
+      },
+      "discovered_at": "2026-04-16 22:19:33.170687"
+    },
+    {
+      "pattern_type": "winning_bullish_regime",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 10,
+      "conditions": {
+        "bullish_regime": true
+      },
+      "discovered_at": "2026-04-16 22:19:33.170687"
+    },
+    {
+      "pattern_type": "winning_low_volatility",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 10,
+      "conditions": {
+        "low_volatility": true
+      },
+      "discovered_at": "2026-04-16 22:19:33.170687"
+    },
+    {
+      "pattern_type": "winning_high_confidence",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 11,
+      "conditions": {
+        "high_confidence": true
+      },
+      "discovered_at": "2026-04-16 22:20:03.199046"
+    },
+    {
+      "pattern_type": "winning_bullish_regime",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 11,
+      "conditions": {
+        "bullish_regime": true
+      },
+      "discovered_at": "2026-04-16 22:20:03.199046"
+    },
+    {
+      "pattern_type": "winning_low_volatility",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 11,
+      "conditions": {
+        "low_volatility": true
+      },
+      "discovered_at": "2026-04-16 22:20:03.199046"
+    },
+    {
+      "pattern_type": "winning_high_confidence",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 12,
+      "conditions": {
+        "high_confidence": true
+      },
+      "discovered_at": "2026-04-16 22:20:37.631918"
+    },
+    {
+      "pattern_type": "winning_bullish_regime",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 12,
+      "conditions": {
+        "bullish_regime": true
+      },
+      "discovered_at": "2026-04-16 22:20:37.631918"
+    },
+    {
+      "pattern_type": "winning_low_volatility",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 12,
+      "conditions": {
+        "low_volatility": true
+      },
+      "discovered_at": "2026-04-16 22:20:37.631918"
+    },
+    {
+      "pattern_type": "winning_high_confidence",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 13,
+      "conditions": {
+        "high_confidence": true
+      },
+      "discovered_at": "2026-04-16 22:21:40.060621"
+    },
+    {
+      "pattern_type": "winning_bullish_regime",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 13,
+      "conditions": {
+        "bullish_regime": true
+      },
+      "discovered_at": "2026-04-16 22:21:40.060621"
+    },
+    {
+      "pattern_type": "winning_low_volatility",
+      "symbol": "all",
+      "success_rate": 1.0,
+      "avg_return": 200.0,
+      "frequency": 13,
+      "conditions": {
+        "low_volatility": true
+      },
+      "discovered_at": "2026-04-16 22:21:40.060621"
+    }
+  ]
+}

@@ -35,9 +35,9 @@ class HybridStrategy(BaseStrategy):
         self.conflict_threshold = kwargs.get("conflict_threshold", 0.3)
         self.agreement_bonus = kwargs.get("agreement_bonus", 0.2)
         
-        # Confluence requirements
-        self.require_confluence = kwargs.get("require_confluence", True)
-        self.min_confluence_score = kwargs.get("min_confluence_score", 0.6)
+        # Confluence requirements (disabled by default to allow single-factor signals)
+        self.require_confluence = kwargs.get("require_confluence", False)
+        self.min_confluence_score = kwargs.get("min_confluence_score", 0.3)
         
         # Risk adjustments
         self.hybrid_stop_loss = kwargs.get("hybrid_stop_loss", 0.05)
@@ -124,7 +124,8 @@ class HybridStrategy(BaseStrategy):
                 "confidence": 0.0,
                 "strength": 0.0,
                 "valid": False,
-                "reason": "no_news"
+                "reason": "no_news",
+                "conditions": ["No news data available"]
             }
         
         # Get symbol-specific news
@@ -135,7 +136,8 @@ class HybridStrategy(BaseStrategy):
                 "confidence": 0.0,
                 "strength": 0.0,
                 "valid": False,
-                "reason": "no_symbol_news"
+                "reason": "no_symbol_news",
+                "conditions": [f"No news found for {symbol}"]
             }
         
         # Calculate sentiment
@@ -155,19 +157,22 @@ class HybridStrategy(BaseStrategy):
                 "confidence": 0.0,
                 "strength": 0.0,
                 "valid": False,
-                "reason": "no_weight"
+                "reason": "no_weight",
+                "conditions": ["News articles have no weight"]
             }
         
         avg_sentiment = total_sentiment / total_weight
         signal_strength = abs(avg_sentiment)
         
+        direction = "bullish" if avg_sentiment > 0 else "bearish" if avg_sentiment < 0 else "neutral"
         return {
             "signal": avg_sentiment,
             "confidence": min(0.9, signal_strength),
             "strength": signal_strength,
             "valid": True,
             "article_count": len(symbol_news),
-            "direction": "bullish" if avg_sentiment > 0 else "bearish" if avg_sentiment < 0 else "neutral"
+            "direction": direction,
+            "conditions": [f"News sentiment: {direction}", f"Articles: {len(symbol_news)}", f"Avg sentiment: {avg_sentiment:.3f}"]
         }
     
     def _analyze_technicals(self, symbol: str, context: StrategyContext) -> Dict[str, Any]:
@@ -180,7 +185,8 @@ class HybridStrategy(BaseStrategy):
                 "confidence": 0.0,
                 "strength": 0.0,
                 "valid": False,
-                "reason": "no_indicators"
+                "reason": "no_indicators",
+                "conditions": ["No technical indicators available"]
             }
         
         # RSI Analysis
@@ -224,9 +230,12 @@ class HybridStrategy(BaseStrategy):
         technical_signal = (rsi_signal * 0.3 + macd_signal * 0.4 + sma_signal * 0.3)
         technical_strength = (abs(rsi_signal) + abs(macd_signal) + abs(sma_signal)) / 3
         
+        # Ensure minimum confidence so signals aren't filtered out
+        confidence = max(0.3, min(0.9, technical_strength))
+        
         return {
             "signal": technical_signal,
-            "confidence": min(0.9, technical_strength),
+            "confidence": confidence,
             "strength": technical_strength,
             "valid": True,
             "rsi": rsi,
@@ -248,7 +257,8 @@ class HybridStrategy(BaseStrategy):
                 "confidence": 0.0,
                 "strength": 0.0,
                 "valid": False,
-                "reason": "no_valid_analyses"
+                "reason": "no_valid_analyses",
+                "conditions": ["No valid news or technical analysis"]
             }
         
         # Weight the signals
@@ -348,7 +358,7 @@ class HybridStrategy(BaseStrategy):
     
     def _get_symbol_indicators(self, symbol: str, context: StrategyContext) -> Optional[Dict[str, float]]:
         """Get technical indicators for a symbol."""
-        market_data = context.metadata.get("market_data", {})
+        market_data = context.market_data
         symbol_data = market_data.get(symbol, {})
         
         if not symbol_data:
@@ -375,12 +385,12 @@ class HybridStrategy(BaseStrategy):
         strength = combined_analysis["strength"]
         conditions = combined_analysis["conditions"]
         
-        # Determine signal direction
-        if combined_signal > 0.3:
+        # Determine signal direction (lowered threshold to 0.1 for more signals)
+        if combined_signal > 0.1:
             direction = SignalDirection.BUY
             urgency = Urgency.HIGH if combined_signal > 0.7 else Urgency.MEDIUM
             reason = f"Hybrid BUY signal: {'; '.join(conditions)}"
-        elif combined_signal < -0.3:
+        elif combined_signal < -0.1:
             direction = SignalDirection.SELL
             urgency = Urgency.HIGH if combined_signal < -0.7 else Urgency.MEDIUM
             reason = f"Hybrid SELL signal: {'; '.join(conditions)}"

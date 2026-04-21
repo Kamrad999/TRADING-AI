@@ -270,7 +270,8 @@ class DataProvider:
             
             # Generate mock OHLC data
             ohlc_data = []
-            current_time = datetime.now()
+            from datetime import timezone
+            current_time = datetime.now(timezone.utc)
             
             # Timeframe in minutes
             timeframe_minutes = {

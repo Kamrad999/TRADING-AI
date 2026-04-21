@@ -177,7 +177,7 @@ class BaseStrategy(IStrategy):
             confidence=confidence,
             urgency=urgency,
             market_regime=MarketRegime.SIDEWAYS,  # Will be updated by strategy
-            position_size=0.0,  # Will be calculated by position sizer
+            position_size=0.1,  # Default position size (10% of portfolio)
             execution_priority=1,
             signal_type=SignalType.NEWS,
             article_id=metadata.get("article_id"),

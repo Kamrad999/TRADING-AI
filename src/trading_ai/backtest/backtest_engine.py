@@ -120,21 +120,21 @@ class BacktestEngine:
         for strategy_name in strategy_names:
             if strategy_name == "NewsStrategy":
                 strategies[strategy_name] = NewsStrategy(
-                    min_confidence=0.3,
+                    min_confidence=0.1,
                     max_position_size=self.config.max_position_size,
                     stop_loss_pct=self.config.stop_loss_pct,
                     take_profit_pct=self.config.take_profit_pct
                 )
             elif strategy_name == "TechnicalStrategy":
                 strategies[strategy_name] = TechnicalStrategy(
-                    min_confidence=0.3,
+                    min_confidence=0.1,
                     max_position_size=self.config.max_position_size,
                     stop_loss_pct=self.config.stop_loss_pct,
                     take_profit_pct=self.config.take_profit_pct
                 )
             elif strategy_name == "HybridStrategy":
                 strategies[strategy_name] = HybridStrategy(
-                    min_confidence=0.3,
+                    min_confidence=0.1,
                     max_position_size=self.config.max_position_size,
                     stop_loss_pct=self.config.stop_loss_pct,
                     take_profit_pct=self.config.take_profit_pct
@@ -260,13 +260,17 @@ class BacktestEngine:
                     
                     # Log signals
                     for signal in output.signals:
+                        # Get symbol-specific price from market_data
+                        symbol_market_data = context.market_data.get(signal.symbol, {})
+                        symbol_price = symbol_market_data.get('price', 0.0)
+                        
                         signal_dict = {
                             'timestamp': timestamp,
                             'strategy': strategy_name,
                             'symbol': signal.symbol,
                             'direction': signal.direction.value,
                             'confidence': signal.confidence,
-                            'price': context.metadata.get('current_price', 0.0),
+                            'price': symbol_price,
                             'metadata': signal.metadata
                         }
                         self.signals.append(signal_dict)
@@ -286,13 +290,17 @@ class BacktestEngine:
         for symbol, df in self.price_data.items():
             if timestamp in df.index:
                 symbol_data = df.loc[timestamp]
+                
+                # Calculate technical indicators from price history
+                indicators = self._calculate_indicators(df, timestamp)
+                
                 market_data[symbol] = {
                     'price': symbol_data['close_price'],
                     'volume': symbol_data['volume'],
                     'high': symbol_data['high_price'],
                     'low': symbol_data['low_price'],
                     'open': symbol_data['open_price'],
-                    'indicators': {}
+                    'indicators': indicators
                 }
                 current_prices[symbol] = symbol_data['close_price']
         
@@ -319,6 +327,49 @@ class BacktestEngine:
         )
         
         return context
+    
+    def _calculate_indicators(self, df: pd.DataFrame, timestamp: datetime) -> Dict[str, float]:
+        """Calculate technical indicators from price history."""
+        try:
+            # Get data up to current timestamp
+            hist = df.loc[:timestamp]
+            if len(hist) < 20:
+                return {}  # Not enough data
+            
+            closes = hist['close_price'].values
+            current_price = closes[-1]
+            
+            # Simple Moving Averages
+            sma_20 = closes[-20:].mean() if len(closes) >= 20 else current_price
+            sma_50 = closes[-50:].mean() if len(closes) >= 50 else sma_20
+            
+            # RSI (simplified)
+            deltas = np.diff(closes[-15:])
+            if len(deltas) > 0:
+                gains = np.mean(deltas[deltas > 0]) if np.any(deltas > 0) else 0
+                losses = -np.mean(deltas[deltas < 0]) if np.any(deltas < 0) else 0.001
+                rs = gains / losses if losses > 0 else 100
+                rsi = 100 - (100 / (1 + rs))
+            else:
+                rsi = 50.0
+            
+            # MACD (simplified)
+            ema_12 = pd.Series(closes).ewm(span=12).mean().iloc[-1] if len(closes) >= 12 else current_price
+            ema_26 = pd.Series(closes).ewm(span=26).mean().iloc[-1] if len(closes) >= 26 else current_price
+            macd = ema_12 - ema_26
+            macd_signal = macd * 0.9  # Simplified signal line
+            
+            return {
+                'rsi': float(rsi),
+                'macd': float(macd),
+                'macd_signal': float(macd_signal),
+                'sma_20': float(sma_20),
+                'sma_50': float(sma_50),
+                'current_price': float(current_price)
+            }
+        except Exception as e:
+            self.logger.warning(f"Failed to calculate indicators: {e}")
+            return {}
     
     def _simulate_trades(self) -> None:
         """Simulate trade execution following VectorBT patterns."""
@@ -496,7 +547,7 @@ class BacktestEngine:
             timestamps.append(trade['timestamp'])
             values.append(self.position_manager.current_balance)
         
-        return pd.Series(values, index=pd.to_datetime(timestamps))
+        return pd.Series(values, index=pd.to_datetime(timestamps, utc=True))
     
     def _create_equity_curve(self) -> pd.DataFrame:
         """Create equity curve DataFrame."""

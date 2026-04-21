@@ -45,6 +45,19 @@ class HybridStrategy(BaseStrategy):
         
         self.logger.info(f"HybridStrategy initialized with news_weight={self.news_weight}, technical_weight={self.technical_weight}")
     
+    def analyze(self, context: StrategyContext) -> StrategyOutput:
+        """
+        Analyze market conditions and generate trading signals.
+        Required by IStrategy abstract base class.
+        
+        Args:
+            context: Current market context
+            
+        Returns:
+            StrategyOutput with signals and position adjustments
+        """
+        return self.execute(context)
+    
     def execute(self, context: StrategyContext) -> StrategyOutput:
         """
         Execute hybrid strategy combining news and technical analysis.
@@ -58,8 +71,11 @@ class HybridStrategy(BaseStrategy):
         signals = []
         
         try:
+            # Get symbols from metadata (backtest compatibility)
+            symbols = context.metadata.get('symbols', list(context.market_data.keys()))
+            
             # Process each symbol
-            for symbol in context.symbols:
+            for symbol in symbols:
                 # Get news analysis
                 news_analysis = self._analyze_news_sentiment(symbol, context)
                 
@@ -78,9 +94,11 @@ class HybridStrategy(BaseStrategy):
             
             return StrategyOutput(
                 signals=signals,
+                position_adjustments={},  # No position adjustments in this strategy
+                risk_adjustments={},  # No risk adjustments in this strategy
                 metadata={
                     "strategy": "HybridStrategy",
-                    "processed_symbols": len(context.symbols),
+                    "processed_symbols": len(symbols),
                     "combination_method": "weighted_average",
                     "news_weight": self.news_weight,
                     "technical_weight": self.technical_weight
@@ -89,7 +107,12 @@ class HybridStrategy(BaseStrategy):
             
         except Exception as e:
             self.logger.error(f"HybridStrategy execution failed: {e}")
-            return StrategyOutput(signals=signals, metadata={"strategy": "HybridStrategy", "error": str(e)})
+            return StrategyOutput(
+                signals=signals,
+                position_adjustments={},
+                risk_adjustments={},
+                metadata={"strategy": "HybridStrategy", "error": str(e)}
+            )
     
     def _analyze_news_sentiment(self, symbol: str, context: StrategyContext) -> Dict[str, Any]:
         """Analyze news sentiment for a symbol."""

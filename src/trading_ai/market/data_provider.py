@@ -119,6 +119,37 @@ class DataProvider:
             self.logger.error(f"Failed to get OHLC data for {symbol}: {e}")
             return []
     
+    def fetch_ohlc_data(self, symbol: str, timeframe: str, 
+                       start_date: datetime, end_date: datetime) -> List[MarketData]:
+        """
+        Fetch OHLC data for date range (for backtesting).
+        
+        Args:
+            symbol: Trading symbol
+            timeframe: Timeframe string
+            start_date: Start datetime
+            end_date: End datetime
+            
+        Returns:
+            List of OHLC data points
+        """
+        try:
+            # Calculate number of bars needed
+            minutes_map = {"1m": 1, "5m": 5, "15m": 15, "1h": 60, "4h": 240, "1d": 1440}
+            minutes = minutes_map.get(timeframe, 60)
+            
+            duration = end_date - start_date
+            limit = int(duration.total_seconds() / 60 / minutes)
+            limit = max(limit, 100)  # Minimum 100 bars
+            limit = min(limit, 1000)  # Maximum 1000 bars
+            
+            # Use existing method to fetch data
+            return self.get_ohlc_data(symbol, timeframe, limit)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to fetch OHLC data for {symbol}: {e}")
+            return []
+    
     def get_market_data(self, symbol: str, include_indicators: bool = True) -> Optional[Dict[str, Any]]:
         """
         Get comprehensive market data for symbol.

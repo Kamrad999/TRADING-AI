@@ -230,7 +230,7 @@ class BacktestEngine:
                 df.sort_index(inplace=True)
                 
                 # Calculate benchmark returns
-                df['returns'] = df['close'].pct_change()
+                df['returns'] = df['close_price'].pct_change()
                 df['cumulative'] = (1 + df['returns']).cumprod()
                 
                 self.benchmark_data = df
@@ -287,34 +287,34 @@ class BacktestEngine:
             if timestamp in df.index:
                 symbol_data = df.loc[timestamp]
                 market_data[symbol] = {
-                    'price': symbol_data['close'],
+                    'price': symbol_data['close_price'],
                     'volume': symbol_data['volume'],
-                    'high': symbol_data['high'],
-                    'low': symbol_data['low'],
-                    'open': symbol_data['open'],
+                    'high': symbol_data['high_price'],
+                    'low': symbol_data['low_price'],
+                    'open': symbol_data['open_price'],
                     'indicators': {}
                 }
-                current_prices[symbol] = symbol_data['close']
+                current_prices[symbol] = symbol_data['close_price']
         
         # Get current positions
         positions = {}
         for position in self.position_manager.get_open_positions():
             positions[position.symbol] = position.quantity
         
-        # Create context
+        # Create context (match StrategyContext dataclass fields)
         context = StrategyContext(
-            symbols=self.config.symbols,
-            timestamp=timestamp,
-            market_data=market_data,
-            positions=positions,
+            current_time=timestamp,
+            market_session=MarketSession.REGULAR,
+            market_regime=MarketRegime.SIDEWAYS,  # Could be calculated
             portfolio_value=self.position_manager.current_balance,
             available_cash=self.position_manager.current_balance,
-            market_regime=MarketRegime.SIDEWAYS,  # Could be calculated
-            market_session=MarketSession.REGULAR,
+            positions=positions,
+            market_data=market_data,
+            news_data=[],  # Could be loaded from external source
             metadata={
+                'symbols': self.config.symbols,
                 'current_price': current_prices.get(self.config.symbols[0], 0.0) if self.config.symbols else 0.0,
                 'volatility': 0.02,  # Could be calculated
-                'news_data': []  # Could be loaded
             }
         )
         

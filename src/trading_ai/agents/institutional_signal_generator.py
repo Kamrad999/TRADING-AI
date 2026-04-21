@@ -408,17 +408,20 @@ class InstitutionalSignalGenerator:
         # Calculate position size
         position_size = self._calculate_position_size(confidence, event.severity)
         
-        # Create signal
+        # Create signal (match Signal model schema exactly)
         return Signal(
             symbol=entity.symbol,
             direction=direction,
             confidence=confidence,
-            reason=reason,
             urgency=urgency,
-            timestamp=article.timestamp,
-            article_id=article.url,
+            market_regime="risk_on",  # Default regime - should be determined from context
             position_size=position_size,
+            execution_priority=2 if urgency == "HIGH" else 1,  # Priority based on urgency
+            signal_type="NEWS",
+            article_id=article.url,
+            generated_at=article.timestamp,
             metadata={
+                "reason": reason,
                 "entity_name": entity.name,
                 "entity_type": entity.entity_type,
                 "event_type": event.event_type,

@@ -124,9 +124,21 @@ class Position:
         if self.status != PositionStatus.OPEN:
             return
         
+        # DEBUG: Log stop loss check
+        if self.stop_loss:
+            should_sl = self._should_stop_loss()
+            self.logger.debug(
+                f"SL Check {self.symbol}: price={self.current_price:.2f}, "
+                f"SL={self.stop_loss:.2f}, side={self.side.value}, "
+                f"should_trigger={should_sl}"
+            )
+        
         # Check stop loss
         if self.stop_loss and self._should_stop_loss():
-            self.logger.info(f"Stop loss triggered for {self.symbol} at {self.current_price}")
+            self.logger.info(
+                f"🛑 STOP LOSS TRIGGERED: {self.symbol} {self.side.value} "
+                f"at ${self.current_price:.2f} (SL: ${self.stop_loss:.2f})"
+            )
             self.close("stop_loss")
         
         # Check take profit

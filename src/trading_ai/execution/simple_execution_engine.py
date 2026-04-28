@@ -13,19 +13,131 @@ Rules:
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 from dataclasses import dataclass
+from abc import ABC, abstractmethod
 
-from .order import Order, OrderSide, OrderStatus
-from ..portfolio.position import Position
+from trading_ai.execution.order import Order, OrderStatus
+from trading_ai.portfolio.position import Position
+from trading_ai.portfolio.portfolio import PortfolioSnapshot
+from copy import deepcopy
+
+
+class SlippageModel(ABC):
+    """
+    Abstract base class for slippage models.
+    
+    Following Zipline architecture pattern:
+    - Pluggable model controls BOTH fill quantity AND fill price
+    - No type checking in engine - pure polymorphism
+    - Deterministic calculation
+    - Volume-aware for realistic execution
+    """
+    
+    @abstractmethod
+    def process_order(self, price: float, order_qty: float, volume: float) -> Tuple[float, float]:
+        """
+        Process order and return fill quantity and fill price.
+        
+        Args:
+            price: Raw execution price
+            order_qty: Signed order quantity (positive=buy, negative=sell)
+            volume: Bar volume (for volume-based models)
+        
+        Returns:
+            Tuple of (fill_qty, fill_price)
+            - fill_qty: Actual quantity filled (may be partial)
+            - fill_price: Price with slippage/impact applied
+        """
+        pass
+
+
+class FixedSlippage(SlippageModel):
+    """
+    Fixed percentage slippage model (Backtrader-style).
+    
+    Simple percentage-based slippage regardless of volume.
+    Fills entire order quantity (no partial fills).
+    """
+    
+    def __init__(self, rate: float = 0.0):
+        """
+        Args:
+            rate: Slippage as decimal (0.001 = 0.1%)
+        """
+        self.rate = rate
+    
+    def process_order(self, price: float, order_qty: float, volume: float) -> Tuple[float, float]:
+        """
+        Process order with fixed percentage slippage.
+        
+        Returns full order quantity with slippage-adjusted price.
+        """
+        if order_qty > 0:
+            fill_price = price * (1 + self.rate)
+        elif order_qty < 0:
+            fill_price = price * (1 - self.rate)
+        else:
+            fill_price = price
+        
+        return order_qty, fill_price
+
+
+class VolumeShareSlippage(SlippageModel):
+    """
+    Volume-share slippage model (Zipline-style).
+    
+    Controls BOTH fill quantity (via participation limits) 
+    AND fill price (via quadratic impact formula).
+    
+    Formula: impact = price * (volume_share ** 2) * impact_factor
+    """
+    
+    def __init__(self, impact_factor: float = 0.1, 
+                 max_participation_rate: float = 0.25):
+        """
+        Args:
+            impact_factor: Multiplier for volume impact (default: 0.1)
+            max_participation_rate: Max % of volume that can be filled (default: 0.25 = 25%)
+        """
+        self.impact_factor = impact_factor
+        self.max_participation_rate = max_participation_rate
+    
+    def process_order(self, price: float, order_qty: float, volume: float) -> Tuple[float, float]:
+        """
+        Process order with Zipline-style volume constraints and quadratic impact.
+        
+        Returns partial fill quantity (capped by participation rate) 
+        with impact-adjusted price.
+        """
+        volume = max(volume, 1.0)
+        
+        # Calculate max fill based on participation rate
+        max_fill = volume * self.max_participation_rate
+        
+        # Cap fill quantity
+        fill_qty = min(abs(order_qty), max_fill)
+        fill_qty *= (1 if order_qty > 0 else -1)
+        
+        # Calculate quadratic impact based on ACTUAL fill quantity
+        volume_share = abs(fill_qty) / volume
+        impact = price * (volume_share ** 2) * self.impact_factor
+        
+        if fill_qty > 0:
+            fill_price = price + impact
+        else:
+            fill_price = price - impact
+        
+        return fill_qty, fill_price
 
 
 @dataclass
 class OHLC:
-    """OHLC bar data."""
+    """OHLC bar data with volume for slippage models."""
     open: float
     high: float
     low: float
     close: float
     timestamp: datetime
+    volume: float = 0.0  # Optional: for volume-based slippage models
 
 
 class SimpleExecutionEngine:
@@ -40,11 +152,30 @@ class SimpleExecutionEngine:
     5. SL/TP checked using OHLC (high/low)
     """
     
-    def __init__(self):
-        """Initialize execution engine."""
+    def __init__(self, initial_cash: float = 10000.0, 
+                 slippage_model: Optional[SlippageModel] = None,
+                 slippage_rate: float = 0.0):
+        """Initialize execution engine.
+        
+        Args:
+            initial_cash: Starting cash balance (default: 10000.0)
+            slippage_model: Slippage model instance (default: None → creates FixedSlippage with slippage_rate)
+            slippage_rate: Deprecated. Use slippage_model instead. Kept for backward compatibility.
+        """
+        self.cash: float = initial_cash
+        
+        # Slippage model (pluggable architecture)
+        if slippage_model is not None:
+            self.slippage_model = slippage_model
+        else:
+            # Default: FixedSlippage with provided rate (backward compatible)
+            self.slippage_model = FixedSlippage(slippage_rate)
+        
         self.pending_orders: List[Order] = []
         self.positions: Dict[str, Position] = {}  # symbol -> Position
         self.closed_positions: List[Position] = []
+        self._current_bar_timestamp: Optional[datetime] = None  # Track current bar for fill timing
+        self.portfolio_history: List[PortfolioSnapshot] = []  # Snapshot history
     
     def place_order(self, order: Order) -> None:
         """Place an order (adds to pending queue)."""
@@ -54,14 +185,19 @@ class SimpleExecutionEngine:
         """
         Process one OHLC bar.
         
+        BACKTRADER CORRECT SEQUENCE:
+        1. Fill pending orders at bar OPEN
+        2. Check SL/TP using HIGH/LOW
+        3. Update position price using CLOSE
+        
         Returns list of (position, exit_reason, exit_price) for closed trades.
         """
         closed_trades = []
         
-        # 1. Fill pending orders at bar open
+        # 1. Fill pending orders at bar OPEN
         self._fill_pending_orders(symbol, ohlc)
         
-        # 2. Check SL/TP for open positions using OHLC
+        # 2. Check SL/TP for open positions using HIGH/LOW
         if symbol in self.positions:
             pos = self.positions[symbol]
             if pos.is_open:
@@ -72,9 +208,21 @@ class SimpleExecutionEngine:
                     pos.close(exit_price, exit_reason)
                     closed_trades.append((pos, exit_reason, exit_price))
                     
+                    # Update cash - SIGNED QUANTITY MODEL (Backtrader)
+                    # cash += -quantity * exit_price
+                    # (closing position = opposite transaction)
+                    self.cash += -pos.quantity * exit_price
+                    
                     # Move to closed list
                     self.closed_positions.append(pos)
                     del self.positions[symbol]
+        
+        # 3. Update position price using CLOSE (mark to market)
+        if symbol in self.positions:
+            self.positions[symbol].update_price(ohlc.close)
+        
+        # 4. Create portfolio snapshot after processing bar
+        self._create_portfolio_snapshot(ohlc.timestamp)
         
         return closed_trades
     
@@ -87,40 +235,146 @@ class SimpleExecutionEngine:
                 remaining_orders.append(order)
                 continue
             
-            if not order.is_pending:
+            if order.status not in [OrderStatus.CREATED, OrderStatus.SUBMITTED, OrderStatus.ACCEPTED]:
                 remaining_orders.append(order)
                 continue
             
-            # Market order fills at open price
-            fill_price = ohlc.open
-            order.mark_filled(fill_price, ohlc.timestamp)
+            # BACKTRADER TIMING RULE - MUTUALLY EXCLUSIVE CASES
             
-            # Create position from filled order
-            if order.is_long:
-                # Buy order creates LONG position (positive quantity)
-                quantity = abs(order.size)
+            if order.timestamp > ohlc.timestamp:
+                # CASE 1: FUTURE ORDER - invalid state, must error
+                raise ValueError(
+                    f"Order timestamp {order.timestamp} is in the future "
+                    f"relative to bar timestamp {ohlc.timestamp}"
+                )
+            
+            elif order.timestamp == ohlc.timestamp:
+                # CASE 2: SAME BAR - skip, wait for next bar
+                remaining_orders.append(order)
+                continue
+            
             else:
-                # Sell order creates SHORT position (negative quantity)
-                quantity = -abs(order.size)
-            
-            # Close existing position if reversing
-            if symbol in self.positions:
-                existing_pos = self.positions[symbol]
-                if (existing_pos.quantity > 0 and quantity < 0) or \
-                   (existing_pos.quantity < 0 and quantity > 0):
-                    # Reverse position — close existing first
-                    existing_pos.close(fill_price, "reverse")
-                    self.closed_positions.append(existing_pos)
-            
-            # Create new position
-            position = Position(
-                symbol=symbol,
-                entry_price=fill_price,
-                quantity=quantity,
-                current_price=fill_price
-            )
-            
-            self.positions[symbol] = position
+                # CASE 3: NEXT BAR (order.timestamp < ohlc.timestamp) - fill at open
+                raw_price = ohlc.open
+                
+                # Get remaining quantity to fill
+                remaining_order_qty = order.quantity - order.filled_quantity
+                
+                # Use slippage model to determine fill quantity and price
+                # Pure polymorphism - no type checking (Zipline architecture)
+                fill_quantity, fill_price = self.slippage_model.process_order(
+                    raw_price,
+                    remaining_order_qty,
+                    ohlc.volume
+                )
+                
+                # STRICT: Zero-fill handling (prevent infinite loops)
+                # If slippage model returns zero fill, skip this bar safely
+                if abs(fill_quantity) < 1e-9:
+                    continue
+                
+                # STRICT: Sign validation (ensure fill direction matches order)
+                if remaining_order_qty != 0:
+                    assert fill_quantity * remaining_order_qty >= 0, \
+                        f"Fill sign mismatch: fill_qty={fill_quantity}, remaining={remaining_order_qty}"
+                
+                # STRICT: Overfill protection (fill cannot exceed remaining)
+                if abs(fill_quantity) > abs(remaining_order_qty):
+                    fill_quantity = remaining_order_qty
+                
+                # SIGNED CASH FLOW MODEL (Zipline / Backtrader)
+                # Cash updated by actual fill quantity
+                self.cash -= fill_quantity * fill_price
+                
+                # Fill the order (may be partial)
+                order.fill(fill_quantity, fill_price)
+                
+                # STRICT: Validate filled quantity never exceeds original
+                assert abs(order.filled_quantity) <= abs(order.quantity) + 1e-9, \
+                    f"Filled quantity {order.filled_quantity} exceeds order quantity {order.quantity}"
+                
+                # PARTIAL FILL LIFECYCLE (Zipline-style)
+                # Check if order still has remaining quantity
+                remaining_after_fill = order.quantity - order.filled_quantity
+                if abs(remaining_after_fill) > 1e-9 and order.status != OrderStatus.FILLED:
+                    # Order partially filled, keep in pending for next bar
+                    remaining_orders.append(order)
+                    # Position aggregation happens below, then continue to next order
+                
+                # POSITION AGGREGATION (Backtrader pattern) - using ACTUAL fill quantity
+                if symbol in self.positions:
+                    existing_pos = self.positions[symbol]
+                    same_direction = (existing_pos.quantity > 0 and fill_quantity > 0) or \
+                                     (existing_pos.quantity < 0 and fill_quantity < 0)
+                    
+                    if same_direction:
+                        # Same direction - ADD to existing position (average price)
+                        existing_pos.add(fill_quantity, fill_price, ohlc.timestamp)
+                    else:
+                        # Opposite direction - REDUCE or REVERSE position
+                        remaining = existing_pos.quantity + fill_quantity
+                        
+                        if abs(remaining) < 0.0001:
+                            # Exact close - close position
+                            # Cash already updated at order level (STEP 4)
+                            existing_pos.close(fill_price, "reduce")
+                            self.closed_positions.append(existing_pos)
+                            del self.positions[symbol]
+                        elif (existing_pos.quantity > 0 and remaining > 0) or \
+                             (existing_pos.quantity < 0 and remaining < 0):
+                            # Reduced position - partial close then add remainder
+                            # SAFETY VALIDATION: prevent invalid partial close
+                            assert abs(remaining) <= abs(existing_pos.quantity), \
+                                f"Invalid partial close: remaining={remaining}, existing={existing_pos.quantity}"
+                            
+                            # Cash already updated at order level (STEP 4)
+                            closed_qty = existing_pos.quantity - remaining
+                            
+                            # SECOND SAFETY CHECK: closed quantity must not exceed position
+                            assert abs(closed_qty) <= abs(existing_pos.quantity), \
+                                f"Closed quantity exceeds position: closed={closed_qty}, existing={existing_pos.quantity}"
+                            
+                            existing_pos.close(fill_price, "reduce")
+                            self.closed_positions.append(existing_pos)
+                            
+                            # Create new position with remaining quantity
+                            self.positions[symbol] = Position(
+                                symbol=symbol,
+                                entry_price=fill_price,
+                                quantity=remaining,
+                                current_price=fill_price
+                            )
+                        else:
+                            # Full reversal - close existing, open opposite
+                            # Cash already updated at order level (STEP 4)
+                            existing_pos.close(fill_price, "reverse")
+                            self.closed_positions.append(existing_pos)
+                            
+                            # Create new position opposite direction
+                            self.positions[symbol] = Position(
+                                symbol=symbol,
+                                entry_price=fill_price,
+                                quantity=remaining,  # remaining has opposite sign
+                                current_price=fill_price
+                            )
+                else:
+                    # No existing position - create new with ACTUAL fill quantity
+                    self.positions[symbol] = Position(
+                        symbol=symbol,
+                        entry_price=fill_price,
+                        quantity=fill_quantity,
+                        current_price=fill_price
+                    )
+                
+                # Skip adding to remaining_orders if already added above for partial fills
+                # or if order is fully filled
+                if order.status == OrderStatus.FILLED:
+                    continue  # Order fully filled, don't add back to pending
+                elif abs(remaining_after_fill) > 1e-9:
+                    continue  # Partial fill, already added to remaining_orders above
+                else:
+                    # Shouldn't reach here, but safety net
+                    remaining_orders.append(order)
         
         self.pending_orders = remaining_orders
     
@@ -171,14 +425,48 @@ class SimpleExecutionEngine:
         if symbol in self.positions:
                 self.positions[symbol].take_profit = take_profit
     
+    def _create_portfolio_snapshot(self, timestamp: datetime) -> PortfolioSnapshot:
+        """Create read-only portfolio snapshot after bar processing.
+        
+        Calculates total_equity = cash + sum(position market values).
+        Deep-copies positions to prevent external mutation.
+        """
+        # Deep copy positions to prevent external mutation
+        positions_copy = {symbol: deepcopy(pos) for symbol, pos in self.positions.items()}
+        
+        # Calculate position market values (using current prices in positions)
+        position_value = sum(
+            pos.quantity * pos.current_price 
+            for pos in positions_copy.values()
+        )
+        
+        total_equity = self.cash + position_value
+        
+        snapshot = PortfolioSnapshot(
+            cash=self.cash,
+            positions=positions_copy,
+            total_equity=total_equity,
+            timestamp=timestamp
+        )
+        
+        self.portfolio_history.append(snapshot)
+        return snapshot
+    
+    def get_latest_portfolio(self) -> Optional[PortfolioSnapshot]:
+        """Get latest portfolio snapshot."""
+        if not self.portfolio_history:
+            return None
+        return self.portfolio_history[-1]
+    
     def get_position(self, symbol: str) -> Optional[Position]:
-        """Get open position for symbol."""
+        """Get position for symbol."""
         return self.positions.get(symbol)
     
     def get_all_positions(self) -> List[Position]:
         """Get all open positions."""
         return list(self.positions.values())
     
+    # ... (rest of the code remains the same)
     def close_position(self, symbol: str, price: float, reason: str) -> Optional[float]:
         """Manually close position."""
         if symbol in self.positions:

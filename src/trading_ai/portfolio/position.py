@@ -10,6 +10,19 @@ Key principles:
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
+from enum import Enum
+
+
+class PositionSide(Enum):
+    """Position side - LONG or SHORT."""
+    LONG = "long"
+    SHORT = "short"
+
+
+class PositionStatus(Enum):
+    """Position status - OPEN or CLOSED."""
+    OPEN = "open"
+    CLOSED = "closed"
 
 
 @dataclass
@@ -95,3 +108,31 @@ class Position:
     def is_short(self) -> bool:
         """True if position is short (quantity < 0)."""
         return self.quantity < 0
+    
+    def add(self, quantity: float, price: float, timestamp: datetime) -> None:
+        """
+        Add to existing position (Backtrader pattern).
+        Updates quantity and recalculates average entry price.
+        
+        Formula: new_entry = (old_value + new_value) / total_quantity
+        """
+        if self.is_open:
+            # Calculate weighted average entry price
+            old_value = self.entry_price * self.quantity
+            new_value = price * quantity
+            total_quantity = self.quantity + quantity
+            
+            if total_quantity != 0:
+                self.entry_price = (old_value + new_value) / total_quantity
+            self.quantity = total_quantity
+        else:
+            # Position was closed, treat as new entry
+            self.entry_price = price
+            self.quantity = quantity
+            self.is_open = True
+            self.exit_price = None
+            self.exit_reason = None
+            self.exit_time = None
+        
+        self.current_price = price
+        self.entry_time = timestamp

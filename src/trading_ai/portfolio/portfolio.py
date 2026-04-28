@@ -6,10 +6,66 @@ Manages overall portfolio state and performance.
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from dataclasses import dataclass, field
+from copy import deepcopy
 
-from ..infrastructure.logging import get_logger
-from .position import Position, PositionSide, PositionStatus
-from .risk_manager import RiskManager, RiskConfig
+from trading_ai.infrastructure.logging import get_logger
+from trading_ai.portfolio.position import Position, PositionSide, PositionStatus
+from trading_ai.portfolio.risk_manager import RiskManager, RiskConfig
+
+
+@dataclass(frozen=True)
+class PortfolioSnapshot:
+    """
+    Portfolio SNAPSHOT - READ-ONLY account state at a point in time.
+    
+    Following Zipline/Backtrader patterns:
+    - Pure data container (no logic)
+    - Immutable (frozen dataclass)
+    - Deep-copied positions to prevent external mutation
+    
+    Attributes:
+        cash: Available cash
+        positions: Dict of symbol -> Position (deep-copied)
+        total_equity: cash + sum(position market values)
+        timestamp: When snapshot was taken
+    """
+    cash: float
+    positions: Dict[str, Position]  # Deep-copied from engine
+    total_equity: float
+    timestamp: datetime
+    
+    def get_position_value(self, symbol: str, current_price: float) -> float:
+        """Calculate market value of a position at given price."""
+        if symbol not in self.positions:
+            return 0.0
+        pos = self.positions[symbol]
+        # Market value = quantity * current_price
+        return pos.quantity * current_price
+    
+    def get_total_position_value(self, price_lookup: Dict[str, float]) -> float:
+        """Calculate total market value of all positions."""
+        total = 0.0
+        for symbol, pos in self.positions.items():
+            if symbol in price_lookup:
+                total += pos.quantity * price_lookup[symbol]
+            else:
+                # Use last known current_price from position
+                total += pos.quantity * pos.current_price
+        return total
+    
+    def validate_equity(self, price_lookup: Optional[Dict[str, float]] = None) -> bool:
+        """Verify total_equity == cash + position_values."""
+        if price_lookup:
+            position_value = self.get_total_position_value(price_lookup)
+        else:
+            # Use stored current prices
+            position_value = sum(
+                pos.quantity * pos.current_price 
+                for pos in self.positions.values()
+            )
+        
+        expected_equity = self.cash + position_value
+        return abs(self.total_equity - expected_equity) < 1e-9
 
 
 @dataclass

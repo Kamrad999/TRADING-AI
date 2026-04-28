@@ -16,75 +16,104 @@ class OrderSide(Enum):
 
 
 class OrderStatus(Enum):
-    """Order lifecycle status."""
-    PENDING = "pending"
+    """Order lifecycle status — Backtrader/Zipline pattern."""
+    CREATED = "created"
+    SUBMITTED = "submitted"
+    ACCEPTED = "accepted"
+    PARTIALLY_FILLED = "partially_filled"
     FILLED = "filled"
-    CANCELLED = "cancelled"
+    CANCELED = "canceled"
     REJECTED = "rejected"
 
 
 @dataclass
 class Order:
     """
-    Order — represents trading intent.
+    Order — strict dataclass representing trading intent.
+    
+    SIGNED QUANTITY MODEL:
+    - quantity > 0: BUY order
+    - quantity < 0: SELL order
+    - No OrderSide enum needed
     
     Fields:
+        id: Unique order identifier
         symbol: Trading symbol
-        side: BUY or SELL
-        size: Quantity (positive for buy, negative for sell)
-        price: Limit price (None for market orders)
+        quantity: Signed quantity (positive=buy, negative=sell)
+        order_type: Order type ("market" only for now)
         timestamp: When order was created
+        filled_quantity: How much has been filled
+        avg_fill_price: Average fill price
         status: Current order status
-        filled_price: Actual fill price (set when filled)
-        filled_time: When order was filled
+        stop_loss: Optional stop loss price
+        take_profit: Optional take profit price
     """
+    id: str
     symbol: str
-    side: OrderSide
-    size: float  # positive = buy/long, negative = sell/short
+    quantity: float  # SIGNED: positive=buy, negative=sell
+    order_type: str  # "market" only for now
     timestamp: datetime
     
-    # Optional fields
-    price: Optional[float] = None  # None = market order
-    status: OrderStatus = field(default=OrderStatus.PENDING)
+    # Execution tracking
+    filled_quantity: float = 0.0
+    avg_fill_price: float = 0.0
     
-    # Fill data (populated when filled)
-    filled_price: Optional[float] = None
-    filled_time: Optional[datetime] = None
+    # State
+    status: OrderStatus = field(default=OrderStatus.CREATED)
     
-    # Internal
-    id: str = field(default="")
+    # Optional risk parameters
+    stop_loss: Optional[float] = None
+    take_profit: Optional[float] = None
     
-    def __post_init__(self):
-        """Generate ID if not provided."""
-        if not self.id:
-            self.id = f"ord_{self.timestamp.strftime('%Y%m%d_%H%M%S')}_{self.symbol}"
+    def fill(self, quantity: float, price: float) -> None:
+        """
+        Record a fill for this order.
+        
+        Args:
+            quantity: Signed fill quantity (positive for buy fill, negative for sell fill)
+            price: Fill price
+        
+        Updates:
+            - filled_quantity: cumulative filled amount
+            - avg_fill_price: weighted average of all fills
+            - status: PARTIALLY_FILLED or FILLED based on completion
+        """
+        # Record pre-fill state for weighted average calculation
+        old_filled_qty = self.filled_quantity
+        new_filled_qty = old_filled_qty + quantity
+        
+        # SAFETY CHECK: never exceed original order quantity
+        assert abs(new_filled_qty) <= abs(self.quantity), \
+            f"Fill would exceed order quantity: {new_filled_qty} vs {self.quantity}"
+        
+        # Update filled quantity
+        self.filled_quantity = new_filled_qty
+        
+        # Update weighted average fill price
+        # Formula: new_avg = (old_avg * old_qty + price * fill_qty) / new_total_qty
+        if new_filled_qty != 0:
+            total_value = (self.avg_fill_price * old_filled_qty) + (price * quantity)
+            self.avg_fill_price = total_value / new_filled_qty
+        else:
+            # Edge case: net zero quantity (shouldn't happen in normal trading)
+            self.avg_fill_price = 0.0
+        
+        # Update status based on fill completion
+        if abs(self.filled_quantity) == abs(self.quantity):
+            # Complete fill
+            self.status = OrderStatus.FILLED
+        elif abs(self.filled_quantity) > 0:
+            # Partial fill
+            self.status = OrderStatus.PARTIALLY_FILLED
     
-    def mark_filled(self, fill_price: float, fill_time: datetime) -> None:
-        """Mark order as filled."""
-        self.status = OrderStatus.FILLED
-        self.filled_price = fill_price
-        self.filled_time = fill_time
-    
-    def mark_cancelled(self) -> None:
-        """Mark order as cancelled."""
-        self.status = OrderStatus.CANCELLED
-    
-    @property
-    def is_pending(self) -> bool:
-        """True if order is pending."""
-        return self.status == OrderStatus.PENDING
-    
-    @property
-    def is_filled(self) -> bool:
-        """True if order is filled."""
-        return self.status == OrderStatus.FILLED
-    
-    @property
-    def is_long(self) -> bool:
-        """True if this is a buy order (creates long position)."""
-        return self.side == OrderSide.BUY
-    
-    @property
-    def is_short(self) -> bool:
-        """True if this is a sell order (creates short position)."""
-        return self.side == OrderSide.SELL
+    def cancel(self) -> None:
+        """
+        Cancel this order.
+        
+        Raises:
+            RuntimeError: If order is already FILLED
+        """
+        if self.status == OrderStatus.FILLED:
+            raise RuntimeError(f"Cannot cancel filled order {self.id}")
+        
+        self.status = OrderStatus.CANCELED

@@ -12,11 +12,11 @@ CRITICAL FIXES from VERIFICATION_AUDIT:
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass, field
-from datetime import timedelta
 from decimal import Decimal, InvalidOperation
-from typing import TYPE_CHECKING, Any, Callable, Optional
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 import whenever
@@ -183,7 +183,7 @@ class HardenedOrderEntry:
         valid_transitions = OrderStateMachine.VALID_TRANSITIONS.get(self.state, set())
         return new_state in valid_transitions
 
-    def transition(self, new_state: OrderState, metadata: Optional[dict[str, Any]] = None) -> None:
+    def transition(self, new_state: OrderState, metadata: dict[str, Any] | None = None) -> None:
         """Transition to new state with validation."""
         if not self.can_transition(new_state):
             raise InvalidStateTransitionError(

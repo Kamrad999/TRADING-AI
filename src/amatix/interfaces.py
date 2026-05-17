@@ -25,10 +25,10 @@ from typing import TYPE_CHECKING, Any, TypeVar
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from datetime import datetime
-
     from amatix.data.market.models import OHLCV, Quote
     from amatix.signals.models import Signal
+
+    from datetime import datetime
 
 # =============================================================================
 # Domain Primitives (Re-exported from canonical locations)

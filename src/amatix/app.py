@@ -18,9 +18,9 @@ Environment Variables:
 from __future__ import annotations
 
 import asyncio
+import os
 import signal
 import sys
-from types import FrameType
 
 from amatix.core.config import Settings, get_settings
 from amatix.core.event_bus_v2 import HardenedEventBusV2
@@ -257,19 +257,19 @@ class AMATISApplication:
 
         # Signal flow: Market Data -> Signal Engine -> Risk -> OMS
         @self._event_bus.on(EventType.MARKET_DATA_RECEIVED, priority=EventPriority.HIGH)
-        async def on_market_data(event: Any) -> None:
+        async def on_market_data(event: Event) -> None:
             await self._handle_market_data(event)
 
         @self._event_bus.on(EventType.SIGNAL_GENERATED, priority=EventPriority.NORMAL)
-        async def on_signal(event: Any) -> None:
+        async def on_signal(event: Event) -> None:
             await self._handle_signal(event)
 
         @self._event_bus.on(EventType.ORDER_FILLED, priority=EventPriority.HIGH)
-        async def on_fill(event: Any) -> None:
+        async def on_fill(event: Event) -> None:
             await self._handle_fill(event)
 
         @self._event_bus.on(EventType.KILL_SWITCH_TRIGGERED, priority=EventPriority.CRITICAL)
-        async def on_kill_switch(event: Any) -> None:
+        async def on_kill_switch(event: Event) -> None:
             await self._handle_kill_switch(event)
 
         logger.info("Event subscriptions wired")

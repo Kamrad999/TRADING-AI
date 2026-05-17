@@ -21,11 +21,11 @@ from uuid import UUID, uuid4
 import whenever
 
 if TYPE_CHECKING:
+    from amatix.core.event_bus_v2 import HardenedEventBusV2
+
     from collections.abc import Callable
 
     from datetime import datetime
-
-    from amatix.core.event_bus_v2 import HardenedEventBusV2
 
 from amatix.core.event_models import EventPriority, EventType
 from amatix.core.observability import get_logger, get_metrics

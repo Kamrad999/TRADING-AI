@@ -300,6 +300,7 @@ class AMATISApplication:
             # Pass to signal pipeline
             # Note: Pipeline would typically be called from a scheduled task
             # This is simplified for demonstration
+            await self._signal_pipeline.process_market_data(symbol)
 
         except Exception as e:
             logger.error(f"Error handling market data: {e}")

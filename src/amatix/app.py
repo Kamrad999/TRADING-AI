@@ -342,8 +342,8 @@ class AMATISApplication:
 
         except Exception as e:
             logger.error(f"Error handling signal: {e}")
-: Event
-    async def _handle_fill(self, event) -> None:
+
+    async def _handle_fill(self, event: Event) -> None:
         """Process order fill."""
         try:
             order_id = event.payload.get("order_id")
@@ -358,7 +358,7 @@ class AMATISApplication:
         except Exception as e:
             logger.error(f"Error handling fill: {e}")
 
-    async def _handle_kill_switch(self, event: Any) -> None:
+    async def _handle_kill_switch(self, event: Event) -> None:
         """Handle emergency kill switch."""
         reason = event.payload.get("reason", "Unknown")
         logger.critical(f"🚨 KILL SWITCH ACTIVATED: {reason}")
@@ -408,7 +408,7 @@ class AMATISApplication:
     def _setup_signal_handlers(self) -> None:
         """Setup graceful shutdown signal handlers."""
 
-        def handle_signal(sig: int, frame: Any) -> None:
+        def handle_signal(sig: int, frame: FrameType | None) -> None:
             logger.info(f"Received signal {sig}, initiating shutdown...")
             self._shutdown_event.set()
 

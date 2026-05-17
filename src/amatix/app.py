@@ -21,6 +21,7 @@ import asyncio
 import os
 import signal
 import sys
+from types import FrameType
 from typing import Any
 
 from amatix.core.config import Settings, get_settings
@@ -275,7 +276,7 @@ class AMATISApplication:
 
         logger.info("Event subscriptions wired")
 
-    async def _handle_market_data(self, event: Any) -> None:
+    async def _handle_market_data(self, event: Event) -> None:
         """Process market data and generate signals."""
         try:
             # Extract data from event

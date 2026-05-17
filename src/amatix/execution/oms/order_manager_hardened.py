@@ -23,7 +23,10 @@ import whenever
 from amatix.core.event_bus_v2 import HardenedEventBusV2
 from amatix.core.event_models import EventPriority, EventType
 from amatix.core.observability import get_logger, get_metrics
-from amatix.execution.oms.state_machine import InvalidStateTransition, OrderState
+from amatix.execution.oms.state_machine import (
+    InvalidStateTransitionError,
+    OrderState,
+)
 
 logger = get_logger(__name__)
 
@@ -605,7 +608,8 @@ class HardenedOrderManager:
                                     }
                                 )
                                 entry.reconcile_discrepancies.append(
-                                    f"State mismatch: OMS={entry.state.name}, Broker={broker_status}"
+                                    f"State mismatch: OMS={entry.state.name}, "
+                                    f"Broker={broker_status}"
                                 )
                         except Exception as e:
                             logger.error(

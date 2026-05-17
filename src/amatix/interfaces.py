@@ -17,13 +17,17 @@ Design principles:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from datetime import datetime
+from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum, auto
-from typing import (
-    Any,
-    TypeVar,
-)
+from collections.abc import AsyncIterator, Callable
+from typing import TYPE_CHECKING, Any, Generic, List, Optional, Protocol
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from amatix.data.market.models import OHLCV, Quote, Symbol
+    from amatix.signals.models import Signal
 
 # =============================================================================
 # Domain Primitives (Re-exported from canonical locations)
@@ -31,12 +35,12 @@ from typing import (
 # Re-export all domain models from their canonical locations
 # This maintains backward compatibility while consolidating definitions
 from amatix.data.market.models import (
-    OHLCV,
-    Quote,
-    Symbol,
-)
-from amatix.signals.models import (
-    Signal,
+    DataSource,
+    OrderBookLevel,
+    OrderBookSnapshot,
+    Tick,
+    Trade,
+    TradeSide,
 )
 
 
@@ -102,8 +106,8 @@ class Order:
     order_id: str | None = None
     broker_order_id: str | None = None
 
-    def __post_init__(self):
-        # Validation
+    def __post_init__(self) -> None:
+        """Validate order constraints."""
         if self.order_type == OrderType.LIMIT and self.limit_price is None:
             raise ValueError("LIMIT orders require limit_price")
         if self.order_type == OrderType.STOP and self.stop_price is None:
@@ -237,7 +241,7 @@ class DataProvider(ABC):
     async def subscribe_quotes(
         self,
         symbols: list[Symbol],
-        callback: Any,  # Callable[[Quote], Awaitable[None]]
+        callback: Callable[[Quote], Awaitable[None]],
     ) -> None:
         """Subscribe to real-time quote updates.
 
@@ -251,7 +255,7 @@ class DataProvider(ABC):
     async def subscribe_trades(
         self,
         symbols: list[Symbol],
-        callback: Any,  # Callable[[OHLCV], Awaitable[None]]
+        callback: Callable[[OHLCV], Awaitable[None]],
     ) -> None:
         """Subscribe to real-time trade updates.
 
@@ -350,14 +354,15 @@ class RiskAssessment:
     risk_score: float  # 0.0 (safe) to 1.0 (dangerous)
 
     # If not approved
-    rejection_reasons: list[str] = None
+    rejection_reasons: list[str] | None = None
 
     # Risk decomposition
     portfolio_heat: float = 0.0
     concentration_risk: float = 0.0
     drawdown_proximity: float = 0.0
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
+        """Initialize rejection reasons list if None."""
         if self.rejection_reasons is None:
             object.__setattr__(self, "rejection_reasons", [])
 

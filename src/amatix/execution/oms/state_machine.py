@@ -49,7 +49,7 @@ class OrderStateMachine:
     """
 
     # Valid state transitions
-    VALID_TRANSITIONS: dict[OrderState, set[OrderState]] = {
+    VALID_TRANSITIONS: ClassVar[dict[OrderState, set[OrderState]]] = {
         OrderState.CREATED: {OrderState.VALIDATED, OrderState.CANCELLED, OrderState.REJECTED},
         OrderState.VALIDATED: {OrderState.SUBMITTED, OrderState.CANCELLED},
         OrderState.SUBMITTED: {
@@ -134,7 +134,7 @@ class OrderStateMachine:
             True if transition succeeded
 
         Raises:
-            InvalidStateTransition: If transition is invalid
+            InvalidStateTransitionError: If transition is invalid
         """
         if not self.can_transition(new_state):
             logger.error(
@@ -142,7 +142,7 @@ class OrderStateMachine:
                 current=self._state.name,
                 target=new_state.name,
             )
-            raise InvalidStateTransition(
+            raise InvalidStateTransitionError(
                 f"Cannot transition from {self._state.name} to {new_state.name}"
             )
 
@@ -237,7 +237,7 @@ class OrderStateMachine:
         }
 
 
-class InvalidStateTransition(Exception):
+class InvalidStateTransitionError(Exception):
     """Raised when invalid state transition attempted."""
 
     pass

@@ -12,10 +12,11 @@ CRITICAL FIXES from VERIFICATION_AUDIT:
 from __future__ import annotations
 
 import asyncio
+from contextlib import suppress
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from decimal import Decimal, InvalidOperation
-from typing import Any
+from typing import Any, Callable
 from uuid import UUID, uuid4
 
 import whenever
@@ -348,10 +349,8 @@ class HardenedOrderManager:
         """Graceful shutdown."""
         if self._reconcile_task:
             self._reconcile_task.cancel()
-            try:
+            with suppress(asyncio.CancelledError):
                 await self._reconcile_task
-            except asyncio.CancelledError:
-                pass
 
         logger.info("HardenedOrderManager shutdown")
 
@@ -572,7 +571,7 @@ class HardenedOrderManager:
 
     async def reconcile_with_broker(
         self,
-        broker_query_fn,
+        broker_query_fn: Callable[[str], Any],
     ) -> ReconciliationReport:
         """Reconcile OMS state with broker.
 
@@ -584,10 +583,12 @@ class HardenedOrderManager:
 
         async with self._global_lock:
             for entry in self._orders.values():
-                if entry.state == OrderState.SUBMITTED and entry.broker_order_id:
-                    # Check if orphaned
-                    if entry.is_orphaned(self._orphan_threshold):
-                        orphaned.append(entry.order_id)
+                if (
+                    entry.state == OrderState.SUBMITTED
+                    and entry.broker_order_id
+                    and entry.is_orphaned(self._orphan_threshold)
+                ):
+                    orphaned.append(entry.order_id)
 
                         # Query broker
                         try:

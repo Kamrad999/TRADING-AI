@@ -6,7 +6,7 @@ Manages order lifecycle states and transitions.
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import Any
+from typing import Any, ClassVar
 
 from amatix.core.observability import get_logger
 
@@ -49,7 +49,12 @@ class OrderStateMachine:
     """
 
     # Valid state transitions
-    VALID_TRANSITIONS: ClassVar[dict[OrderState, set[OrderState]]] = {
+    VALID_TRANSITIONS: ClassVar[dict[OrderState, set[OrderState]]]
+
+    TERMINAL_STATES: ClassVar[set[OrderState]]
+
+    # Initialize class variables
+    VALID_TRANSITIONS = {
         OrderState.CREATED: {OrderState.VALIDATED, OrderState.CANCELLED, OrderState.REJECTED},
         OrderState.VALIDATED: {OrderState.SUBMITTED, OrderState.CANCELLED},
         OrderState.SUBMITTED: {
@@ -73,7 +78,7 @@ class OrderStateMachine:
         OrderState.EXPIRED: set(),  # Terminal state
     }
 
-    TERMINAL_STATES: set[OrderState] = {
+    TERMINAL_STATES = {
         OrderState.FILLED,
         OrderState.CANCELLED,
         OrderState.REJECTED,

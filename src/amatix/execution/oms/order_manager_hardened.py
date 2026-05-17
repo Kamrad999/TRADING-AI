@@ -12,7 +12,6 @@ CRITICAL FIXES from VERIFICATION_AUDIT:
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
@@ -22,6 +21,8 @@ from uuid import UUID, uuid4
 import whenever
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from datetime import datetime
 
     from amatix.core.event_bus_v2 import HardenedEventBusV2

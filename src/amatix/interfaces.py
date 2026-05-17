@@ -23,10 +23,10 @@ from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from amatix.data.market.models import OHLCV, Quote
     from amatix.signals.models import Signal
+
+    from collections.abc import Callable
 
     from datetime import datetime
 

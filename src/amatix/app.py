@@ -21,6 +21,7 @@ import asyncio
 import os
 import signal
 import sys
+from typing import Any
 
 from amatix.core.config import Settings, get_settings
 from amatix.core.event_bus_v2 import HardenedEventBusV2
@@ -340,7 +341,7 @@ class AMATISApplication:
 
         except Exception as e:
             logger.error(f"Error handling signal: {e}")
-
+: Event
     async def _handle_fill(self, event) -> None:
         """Process order fill."""
         try:

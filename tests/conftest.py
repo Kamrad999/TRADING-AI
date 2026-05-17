@@ -10,15 +10,15 @@ This module provides:
 from __future__ import annotations
 
 import asyncio
+from collections.abc import AsyncGenerator, Generator
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, AsyncGenerator, Generator
-from uuid import uuid4
+from typing import Any
 
 import pytest
 import pytest_asyncio
 
-from amatix.core.config import Settings, get_settings
+from amatix.core.config import Settings
 from amatix.core.event_bus import EventBus
 from amatix.interfaces import (
     OHLCV,
@@ -28,10 +28,10 @@ from amatix.interfaces import (
     create_symbol,
 )
 
-
 # =============================================================================
 # Event Loop Policy
 # =============================================================================
+
 
 @pytest.fixture(scope="session")
 def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
@@ -44,6 +44,7 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
 # =============================================================================
 # Core Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def event_bus() -> EventBus:
@@ -65,6 +66,7 @@ def test_settings() -> Settings:
 # =============================================================================
 # Domain Object Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def sample_symbol() -> Symbol:
@@ -106,6 +108,7 @@ def sample_signal(sample_symbol: Symbol) -> Signal:
 # Async Helpers
 # =============================================================================
 
+
 @pytest_asyncio.fixture
 async def async_event_bus() -> AsyncGenerator[EventBus, None]:
     """Async fixture for event bus testing."""
@@ -118,6 +121,7 @@ async def async_event_bus() -> AsyncGenerator[EventBus, None]:
 # =============================================================================
 # Mock Factories
 # =============================================================================
+
 
 def create_mock_signal(
     symbol: str = "AAPL",
@@ -139,9 +143,12 @@ def create_mock_signal(
 # Configuration
 # =============================================================================
 
+
 def pytest_configure(config: Any) -> None:
     """Configure pytest."""
     # Add custom markers
-    config.addinivalue_line("markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')")
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+    )
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
     config.addinivalue_line("markers", "unit: marks tests as unit tests")

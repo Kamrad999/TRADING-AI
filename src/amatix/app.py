@@ -274,7 +274,7 @@ class AMATISApplication:
 
         logger.info("Event subscriptions wired")
 
-    async def _handle_market_data(self, event) -> None:
+    async def _handle_market_data(self, event: Any) -> None:
         """Process market data and generate signals."""
         try:
             # Extract data from event
@@ -303,7 +303,7 @@ class AMATISApplication:
         except Exception as e:
             logger.error(f"Error handling market data: {e}")
 
-    async def _handle_signal(self, event) -> None:
+    async def _handle_signal(self, event: Any) -> None:
         """Process trading signal through risk assessment."""
         try:
             # Import here to avoid circular imports
@@ -406,7 +406,7 @@ class AMATISApplication:
     def _setup_signal_handlers(self) -> None:
         """Setup graceful shutdown signal handlers."""
 
-        def handle_signal(sig, frame):
+        def handle_signal(sig: int, frame: Any) -> None:
             logger.info(f"Received signal {sig}, initiating shutdown...")
             self._shutdown_event.set()
 

@@ -17,13 +17,14 @@ Design principles:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import AsyncIterator, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from decimal import Decimal
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from datetime import datetime
 
     from amatix.data.market.models import OHLCV, Quote

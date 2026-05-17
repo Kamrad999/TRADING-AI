@@ -590,9 +590,9 @@ class HardenedOrderManager:
                 ):
                     orphaned.append(entry.order_id)
 
-                        # Query broker
-                        try:
-                            broker_status = await broker_query_fn(entry.broker_order_id)
+                    # Query broker
+                    try:
+                        broker_status = await broker_query_fn(entry.broker_order_id)
 
                             if broker_status != entry.state.name:
                                 discrepancies.append(

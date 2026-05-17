@@ -49,12 +49,7 @@ class OrderStateMachine:
     """
 
     # Valid state transitions
-    VALID_TRANSITIONS: ClassVar[dict[OrderState, set[OrderState]]]
-
-    TERMINAL_STATES: ClassVar[set[OrderState]]
-
-    # Initialize class variables
-    VALID_TRANSITIONS = {
+    VALID_TRANSITIONS: ClassVar[dict[OrderState, set[OrderState]]] = {
         OrderState.CREATED: {OrderState.VALIDATED, OrderState.CANCELLED, OrderState.REJECTED},
         OrderState.VALIDATED: {OrderState.SUBMITTED, OrderState.CANCELLED},
         OrderState.SUBMITTED: {
@@ -78,7 +73,7 @@ class OrderStateMachine:
         OrderState.EXPIRED: set(),  # Terminal state
     }
 
-    TERMINAL_STATES = {
+    TERMINAL_STATES: ClassVar[set[OrderState]] = {
         OrderState.FILLED,
         OrderState.CANCELLED,
         OrderState.REJECTED,

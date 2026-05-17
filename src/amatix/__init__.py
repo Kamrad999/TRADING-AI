@@ -23,7 +23,7 @@ Example:
 __version__ = "0.1.0"
 __author__ = "AMATIS Engineering Team"
 
-from amatix.core.event_bus_v2 import HardenedEventBusV2
 from amatix.core.config import AmatixConfig
+from amatix.core.event_bus_v2 import HardenedEventBusV2
 
-__all__ = ["HardenedEventBusV2", "AmatixConfig"]
+__all__ = ["AmatixConfig", "HardenedEventBusV2"]

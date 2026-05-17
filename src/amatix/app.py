@@ -20,11 +20,11 @@ from __future__ import annotations
 import asyncio
 import signal
 import sys
-from typing import Any
+from types import FrameType
 
 from amatix.core.config import Settings, get_settings
 from amatix.core.event_bus_v2 import HardenedEventBusV2
-from amatix.core.event_models import EventPriority, EventType
+from amatix.core.event_models import Event, EventPriority, EventType
 from amatix.core.observability import get_logger, initialize_observability
 from amatix.core.orchestrator import Orchestrator
 from amatix.data.market.models import Symbol
@@ -303,7 +303,7 @@ class AMATISApplication:
         except Exception as e:
             logger.error(f"Error handling market data: {e}")
 
-    async def _handle_signal(self, event: Any) -> None:
+    async def _handle_signal(self, event: Event) -> None:
         """Process trading signal through risk assessment."""
         try:
             # Import here to avoid circular imports
@@ -544,7 +544,7 @@ class AMATISApplication:
                 )
                 await self._event_bus.stop()
             except Exception:
-                pass  # Event bus might already be closing
+                logger.debug("Event bus might already be closing")
 
         self._initialized = False
         logger.info("✅ AMATIS shutdown complete")

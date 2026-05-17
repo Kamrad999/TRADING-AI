@@ -14,14 +14,18 @@ from __future__ import annotations
 import asyncio
 from contextlib import suppress
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import timedelta
 from decimal import Decimal, InvalidOperation
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, Optional
 from uuid import UUID, uuid4
 
 import whenever
 
-from amatix.core.event_bus_v2 import HardenedEventBusV2
+if TYPE_CHECKING:
+    from datetime import datetime
+
+    from amatix.core.event_bus_v2 import HardenedEventBusV2
+
 from amatix.core.event_models import EventPriority, EventType
 from amatix.core.observability import get_logger, get_metrics
 from amatix.execution.oms.state_machine import (
@@ -54,6 +58,7 @@ class ReconciliationReport:
 
     @property
     def is_clean(self) -> bool:
+        """Check if reconciliation found no issues."""
         return len(self.discrepancies) == 0 and len(self.orphaned_orders) == 0
 
 
@@ -107,6 +112,7 @@ class HardenedOrderEntry:
         limit_price: Decimal | None = None,
         stop_price: Decimal | None = None,
     ) -> None:
+        """Initialize order entry."""
         self.order_id = order_id
         self.symbol = symbol
         self.side = side
@@ -177,10 +183,10 @@ class HardenedOrderEntry:
         valid_transitions = OrderStateMachine.VALID_TRANSITIONS.get(self.state, set())
         return new_state in valid_transitions
 
-    def transition(self, new_state: OrderState, metadata: dict[str, Any] | None = None) -> None:
+    def transition(self, new_state: OrderState, metadata: Optional[dict[str, Any]] = None) -> None:
         """Transition to new state with validation."""
         if not self.can_transition(new_state):
-            raise InvalidStateTransition(
+            raise InvalidStateTransitionError(
                 f"Cannot transition from {self.state.name} to {new_state.name}"
             )
 

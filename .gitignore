@@ -45,10 +45,38 @@ htmlcov/
 
 # Logs & State
 *.log
-state.json
-validation_memory.json
 pipeline_output*.log
+pipeline_output_*.log
 *.tmp
+*.bak
+
+# Tool output
+mypy_output.txt
+ruff_detailed.txt
+ruff_output.json
+run_output.txt
+push_output.txt
+vulture_output.txt
+
+# AMATIS specific
+.amatis/
+.amatis_cache/
+decision_journal/
+memory_store/
+event_store/
+*.journal
+*.snapshot
+state.json
+state.backup.json
+validation_memory.json
+validation_memory.backup.json
+
+# Environment configs (allow .env.example)
+.env
+.env.local
+.env.*.local
+!env.example
+!env.template
 
 # Sensitive
 .env

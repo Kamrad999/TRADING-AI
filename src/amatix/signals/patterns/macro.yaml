@@ -1,0 +1,136 @@
+# Macro-economic news patterns for AMATIS News Signal Engine
+# Federal Reserve, inflation, employment, and GDP-related signals
+
+patterns:
+  - name: fed_hawkish
+    category: macro
+    description: Federal Reserve signals tightening policy
+    keywords:
+      - rate hike
+      - hawkish fed
+      - tightening cycle
+      - higher rates
+      - aggressive fed
+      - raise rates
+      - rates higher
+      - rate increases
+      - inflation fight
+      - powell hawkish
+    direction: short
+    confidence_boost: 0.10
+    timeframe: swing
+    affected_sectors:
+      - technology
+      - growth
+      - real_estate
+
+  - name: fed_dovish
+    category: macro
+    description: Federal Reserve signals easing policy
+    keywords:
+      - rate cut
+      - dovish fed
+      - easing cycle
+      - lower rates
+      - accommodative
+      - cut rates
+      - rates lower
+      - rate decreases
+      - inflation easing
+      - powell dovish
+      - pause hikes
+    direction: long
+    confidence_boost: 0.10
+    timeframe: swing
+    affected_sectors:
+      - technology
+      - growth
+      - real_estate
+
+  - name: high_inflation
+    category: macro
+    description: Inflation data above expectations
+    keywords:
+      - inflation surges
+      - cpi above
+      - high inflation
+      - price pressures
+      - inflation hot
+      - inflation spike
+      - costs rising
+    direction: short
+    confidence_boost: 0.08
+    timeframe: swing
+
+  - name: low_inflation
+    category: macro
+    description: Inflation data below expectations
+    keywords:
+      - inflation eases
+      - cpi below
+      - low inflation
+      - price pressures ease
+      - inflation cools
+      - inflation declining
+      - costs stabilizing
+    direction: long
+    confidence_boost: 0.08
+    timeframe: swing
+
+  - name: strong_jobs
+    category: macro
+    description: Strong employment data
+    keywords:
+      - jobs beat
+      - payrolls strong
+      - unemployment falls
+      - hiring surge
+      - jobs report strong
+      - nfp beat
+      - employment gain
+    direction: long
+    confidence_boost: 0.08
+    timeframe: swing
+
+  - name: weak_jobs
+    category: macro
+    description: Weak employment data
+    keywords:
+      - jobs miss
+      - payrolls weak
+      - unemployment rises
+      - hiring slows
+      - jobs report weak
+      - nfp miss
+      - employment loss
+    direction: short
+    confidence_boost: 0.08
+    timeframe: swing
+
+  - name: recession_fears
+    category: macro
+    description: Recession concerns mounting
+    keywords:
+      - recession risk
+      - recession fears
+      - economic downturn
+      - gdp contraction
+      - slowing economy
+      - recession warning
+    direction: short
+    confidence_boost: 0.12
+    timeframe: swing
+
+  - name: gdp_growth
+    category: macro
+    description: Strong GDP growth
+    keywords:
+      - gdp beat
+      - gdp growth
+      - economic expansion
+      - strong economy
+      - gdp surge
+      - growth beats
+    direction: long
+    confidence_boost: 0.10
+    timeframe: swing

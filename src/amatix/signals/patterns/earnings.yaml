@@ -1,0 +1,95 @@
+# Earnings-related news patterns for AMATIS News Signal Engine
+# These patterns generate signals based on earnings announcements
+
+patterns:
+  - name: earnings_beat
+    category: earnings
+    description: Company beats earnings expectations
+    keywords:
+      - beat
+      - beats
+      - surpassed
+      - exceeds expectations
+      - strong earnings
+      - earnings win
+      - profit beat
+      - top estimates
+      - above consensus
+    direction: long
+    confidence_boost: 0.15
+    timeframe: swing
+
+  - name: earnings_miss
+    category: earnings
+    description: Company misses earnings expectations
+    keywords:
+      - miss
+      - misses
+      - falls short
+      - disappointing earnings
+      - weak earnings
+      - below expectations
+      - profit decline
+      - missed estimates
+      - revenue miss
+    direction: short
+    confidence_boost: 0.10
+    timeframe: swing
+
+  - name: raised_guidance
+    category: earnings
+    description: Company raises forward guidance
+    keywords:
+      - raises guidance
+      - raised guidance
+      - increases outlook
+      - upbeat forecast
+      - strong guidance
+      - optimistic outlook
+      - raises forecast
+    direction: long
+    confidence_boost: 0.18
+    timeframe: swing
+
+  - name: lowered_guidance
+    category: earnings
+    description: Company lowers forward guidance
+    keywords:
+      - lowers guidance
+      - lowered guidance
+      - cuts outlook
+      - reduces forecast
+      - warning
+      - profit warning
+      - guidance miss
+    direction: short
+    confidence_boost: 0.15
+    timeframe: swing
+
+  - name: revenue_beat
+    category: earnings
+    description: Revenue beats expectations
+    keywords:
+      - revenue beat
+      - sales beat
+      - strong revenue
+      - revenue surge
+      - top line beat
+      - sales growth
+    direction: long
+    confidence_boost: 0.12
+    timeframe: swing
+
+  - name: revenue_miss
+    category: earnings
+    description: Revenue misses expectations
+    keywords:
+      - revenue miss
+      - sales miss
+      - weak revenue
+      - revenue decline
+      - soft sales
+      - top line miss
+    direction: short
+    confidence_boost: 0.10
+    timeframe: swing

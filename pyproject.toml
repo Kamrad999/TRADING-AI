@@ -1,0 +1,266 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "amatix"
+version = "0.1.0"
+description = "AMATIS - Adaptive Multi-Agent Trading Intelligence System"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.11"
+authors = [
+    {name = "AMATIS Engineering Team"}
+]
+keywords = [
+    "trading",
+    "quantitative",
+    "algorithmic-trading",
+    "multi-agent",
+    "event-driven",
+    "risk-management"
+]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
+dependencies = [
+    # Core async
+    "asyncio",
+    "aiohttp>=3.9.0",
+    "aioredis>=2.0.0",
+    
+    # Data & persistence
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.12.0",
+    "redis>=5.0.0",
+    "msgpack>=1.0.7",
+    
+    # Event system
+    "pyee>=11.0.0",
+    
+    # Observability
+    "structlog>=23.2.0",
+    "prometheus-client>=0.19.0",
+    "opentelemetry-api>=1.21.0",
+    "opentelemetry-sdk>=1.21.0",
+    
+    # Time series
+    "pandas>=2.1.0",
+    "numpy>=1.26.0",
+    
+    # HTTP & feeds
+    "httpx>=0.25.0",
+    "feedparser>=6.0.10",
+    "websockets>=12.0",
+    
+    # Utilities
+    "python-dotenv>=1.0.0",
+    "tenacity>=8.2.0",
+    "orjson>=3.9.0",
+    "ulid-py>=1.1.0",
+    "whenever>=0.6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "pytest-xdist>=3.5.0",
+    "pytest-mock>=3.12.0",
+    "hypothesis>=6.92.0",
+    "factory-boy>=3.3.0",
+    "respx>=0.20.0",
+    
+    # Linting & formatting
+    "ruff>=0.1.0",
+    "mypy>=1.7.0",
+    "pre-commit>=3.6.0",
+    
+    # Type stubs
+    "types-python-dateutil",
+    "types-pytz",
+    "types-redis",
+    "types-requests",
+    
+    # Documentation
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.5.0",
+    "mkdocstrings[python]>=0.24.0",
+    
+    # Security
+    "bandit[toml]>=1.7.6",
+    "safety>=2.3.0",
+    "pip-audit>=2.6.0",
+    
+    # Debugging
+    "ipython>=8.18.0",
+    "ipdb>=0.13.0",
+    "rich>=13.7.0",
+]
+
+[project.scripts]
+amatis = "amatix.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/amatix"]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+# ============================================================================
+# RUFF CONFIGURATION
+# ============================================================================
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "D",   # pydocstyle
+    "ANN", # flake8-annotations
+    "S",   # flake8-bandit
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "TID", # flake8-tidy-imports
+    "Q",   # flake8-quotes
+    "UP",  # pyupgrade
+    "PT",  # flake8-pytest-style
+    "RUF", # Ruff-specific rules
+]
+ignore = [
+    "D100",  # Missing docstring in public module (covered by module docstrings)
+    "D104",  # Missing docstring in public package
+    "ANN101", # Self type annotation (redundant)
+    "ANN102", # cls type annotation (redundant)
+    "S101",   # Assert statements (allowed in tests)
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["amatix"]
+combine-as-imports = true
+split-on-trailing-comma = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# ============================================================================
+# MYPY CONFIGURATION
+# ============================================================================
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_configs = true
+show_error_codes = true
+show_column_numbers = true
+pretty = true
+
+# Per-module overrides
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "feedparser.*"
+ignore_missing_imports = true
+
+# ============================================================================
+# PYTEST CONFIGURATION
+# ============================================================================
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--cov=amatix",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+    "--cov-fail-under=80",
+]
+markers = [
+    "unit: Unit tests (fast, isolated)",
+    "integration: Integration tests (slower, may use external services)",
+    "e2e: End-to-end tests (full pipeline)",
+    "slow: Slow tests (skip with -m 'not slow')",
+    "redis: Tests requiring Redis",
+    "postgres: Tests requiring PostgreSQL",
+]
+asyncio_mode = "auto"
+filterwarnings = [
+    "error::DeprecationWarning",
+    "error::PendingDeprecationWarning",
+]
+
+# ============================================================================
+# COVERAGE CONFIGURATION
+# ============================================================================
+[tool.coverage.run]
+source = ["src/amatix"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__main__.py",
+]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+precision = 2
+fail_under = 80
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+# ============================================================================
+# BANDIT CONFIGURATION
+# ============================================================================
+[tool.bandit]
+exclude_dirs = ["tests", "venv", ".venv"]
+skips = ["B101"]  # Allow asserts in non-production code
+
+# ============================================================================
+# PRE-COMMIT HOOKS (documented, use pre-commit install)
+# ============================================================================
+# See .pre-commit-config.yaml for actual hooks

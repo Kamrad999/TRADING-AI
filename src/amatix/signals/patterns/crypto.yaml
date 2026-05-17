@@ -1,0 +1,89 @@
+# Cryptocurrency news patterns for AMATIS News Signal Engine
+# Bitcoin, Ethereum, and general crypto market signals
+
+patterns:
+  - name: crypto_bullish
+    category: crypto
+    description: Bullish crypto market developments
+    keywords:
+      - bitcoin rally
+      - crypto surge
+      - institutional adoption
+      - etf approval
+      - spot bitcoin etf
+      - crypto gains
+      - bullish crypto
+      - crypto boom
+      - altcoin rally
+      - ethereum surge
+      - crypto breakout
+      - mining profitable
+      - hash rate high
+    direction: long
+    confidence_boost: 0.12
+    timeframe: swing
+
+  - name: crypto_bearish
+    category: crypto
+    description: Bearish crypto market developments
+    keywords:
+      - crypto crash
+      - bitcoin falls
+      - crypto ban
+      - regulation crackdown
+      - crypto selloff
+      - bearish crypto
+      - crypto dump
+      - exchange hack
+      - regulatory action
+      - mining ban
+      - crypto scam
+    direction: short
+    confidence_boost: 0.10
+    timeframe: swing
+
+  - name: crypto_adoption
+    category: crypto
+    description: Mainstream crypto adoption
+    keywords:
+      - crypto adoption
+      - bitcoin payment
+      - accepts crypto
+      - crypto integration
+      - blockchain adoption
+      - web3 growth
+      - defi surge
+      - nft mainstream
+    direction: long
+    confidence_boost: 0.08
+    timeframe: position
+
+  - name: crypto_etf_positive
+    category: crypto
+    description: Positive ETF-related news
+    keywords:
+      - etf approval
+      - spot etf
+      - etf launch
+      - etf inflows
+      - institutional etf
+      - blackrock etf
+      - fidelity crypto
+    direction: long
+    confidence_boost: 0.15
+    timeframe: swing
+
+  - name: stablecoin_concern
+    category: crypto
+    description: Stablecoin or DeFi concerns
+    keywords:
+      - stablecoin depeg
+      - tether concern
+      - usdc issue
+      - depeg event
+      - defi exploit
+      - protocol hack
+      - smart contract bug
+    direction: short
+    confidence_boost: 0.12
+    timeframe: swing

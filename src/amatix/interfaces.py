@@ -17,16 +17,16 @@ Design principles:
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass, field
 from decimal import Decimal
 from enum import Enum, auto
-from collections.abc import AsyncIterator, Callable
-from typing import TYPE_CHECKING, Any, Generic, List, Optional, Protocol
+from typing import TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
     from datetime import datetime
 
-    from amatix.data.market.models import OHLCV, Quote, Symbol
+    from amatix.data.market.models import OHLCV, Quote
     from amatix.signals.models import Signal
 
 # =============================================================================
@@ -34,14 +34,7 @@ if TYPE_CHECKING:
 # =============================================================================
 # Re-export all domain models from their canonical locations
 # This maintains backward compatibility while consolidating definitions
-from amatix.data.market.models import (
-    DataSource,
-    OrderBookLevel,
-    OrderBookSnapshot,
-    Tick,
-    Trade,
-    TradeSide,
-)
+from amatix.data.market.models import Symbol
 
 
 # Define interface-specific enums (these don't conflict)
@@ -241,7 +234,7 @@ class DataProvider(ABC):
     async def subscribe_quotes(
         self,
         symbols: list[Symbol],
-        callback: Callable[[Quote], Awaitable[None]],
+        callback: Callable[[Quote], Any],
     ) -> None:
         """Subscribe to real-time quote updates.
 
@@ -255,7 +248,7 @@ class DataProvider(ABC):
     async def subscribe_trades(
         self,
         symbols: list[Symbol],
-        callback: Callable[[OHLCV], Awaitable[None]],
+        callback: Callable[[OHLCV], Any],
     ) -> None:
         """Subscribe to real-time trade updates.
 

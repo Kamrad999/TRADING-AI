@@ -25,8 +25,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from types import FrameType
-from types import FrameType
-from typing import Any
 
 from amatix.core.config import Settings, get_settings
 from amatix.core.event_bus_v2 import HardenedEventBusV2

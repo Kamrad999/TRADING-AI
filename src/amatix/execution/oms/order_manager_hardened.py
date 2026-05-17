@@ -594,30 +594,29 @@ class HardenedOrderManager:
                     try:
                         broker_status = await broker_query_fn(entry.broker_order_id)
 
-                            if broker_status != entry.state.name:
-                                discrepancies.append(
-                                    {
-                                        "order_id": str(entry.order_id),
-                                        "broker_order_id": entry.broker_order_id,
-                                        "oms_state": entry.state.name,
-                                        "broker_state": broker_status,
-                                        "orphaned_for_seconds": (
-                                            whenever.now().py_datetime() - entry.submitted_at
-                                        ).total_seconds()
-                                        if entry.submitted_at
-                                        else None,
-                                    }
-                                )
-                                entry.reconcile_discrepancies.append(
-                                    f"State mismatch: OMS={entry.state.name}, "
-                                    f"Broker={broker_status}"
-                                )
-                        except Exception as e:
-                            logger.error(
-                                "Broker query failed during reconciliation",
-                                broker_order_id=entry.broker_order_id,
-                                error=str(e),
+                        if broker_status != entry.state.name:
+                            discrepancies.append(
+                                {
+                                    "order_id": str(entry.order_id),
+                                    "broker_order_id": entry.broker_order_id,
+                                    "oms_state": entry.state.name,
+                                    "broker_state": broker_status,
+                                    "orphaned_for_seconds": (
+                                        whenever.now().py_datetime() - entry.submitted_at
+                                    ).total_seconds()
+                                    if entry.submitted_at
+                                    else None,
+                                }
                             )
+                            entry.reconcile_discrepancies.append(
+                                f"State mismatch: OMS={entry.state.name}, Broker={broker_status}"
+                            )
+                    except Exception as e:
+                        logger.error(
+                            "Broker query failed during reconciliation",
+                            broker_order_id=entry.broker_order_id,
+                            error=str(e),
+                        )
 
         report = ReconciliationReport(
             discrepancies=discrepancies,

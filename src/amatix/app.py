@@ -21,6 +21,10 @@ import asyncio
 import os
 import signal
 import sys
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from types import FrameType
 from types import FrameType
 from typing import Any
 
